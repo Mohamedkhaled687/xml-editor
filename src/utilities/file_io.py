@@ -87,3 +87,10 @@ def pretty_format(xml: str, indent: str = "    ") -> str:
         print(f"Warning: An unexpected error occurred during formatting: {e}")      
         return xml
 
+def minify_xml(xml_string: str) -> str:
+    """
+    Minify an XML string by removing unnecessary whitespace and indentations.
+    """
+    xml_string = re.sub(r'>\s+<', '><', xml_string)     #\s+ is a regex for whitespace characters (space \s, tab \t, new line \n)
+    xml_string = xml_string.strip()
+    return xml_string
