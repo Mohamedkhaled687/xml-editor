@@ -495,7 +495,7 @@ class XMLController:
 
 
 
-
+"""
     # ===================================================================
     # SECTION 5: Compression and Decompression
     # ===================================================================
@@ -601,3 +601,5 @@ class XMLController:
             tokens = new_tokens
 
         self.xml_string = ''.join(chr(t) for t in tokens)
+
+"""
