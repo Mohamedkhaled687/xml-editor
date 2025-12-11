@@ -47,6 +47,24 @@ class XMLController:
         """
         self.xml_string: str = xml
 
+
+    @staticmethod
+    def pack_u16(n):
+        return bytes([n & 255, (n >> 8) & 255])
+
+    @staticmethod
+    def pack_u32(n):
+        return bytes([n & 255, (n >> 8) & 255, (n >> 16) & 255, (n >> 24) & 255])
+
+    @staticmethod
+    def unpack_u16(data, offset):
+        return data[offset] | (data[offset + 1] << 8)
+
+    @staticmethod
+    def unpack_u32(data, offset):
+        return (data[offset] | (data[offset + 1] << 8) |
+                (data[offset + 2] << 16) | (data[offset + 3] << 24))
+
     # ===================================================================
     # SECTION 1: HELPER METHODS (Setter, Getter, Tokenizer)
     # ===================================================================
@@ -396,3 +414,42 @@ class XMLController:
             out.extend(self.pack_u16(t))
 
         return bytes([b if b < 256 else 63 for b in out]).decode("latin-1")
+
+    def decompress_from_string(self, compressed_string: str) -> None:
+        data = bytearray(compressed_string.encode("latin-1"))
+        offset = 0
+
+        merge_count = self.unpack_u32(data, offset)
+        offset += 4
+
+        # Store merges in creation order
+        merges = []
+        for _ in range(merge_count):
+            t1 = self.unpack_u16(data, offset)
+            offset += 2
+            t2 = self.unpack_u16(data, offset)
+            offset += 2
+            merged = self.unpack_u16(data, offset)
+            offset += 2
+            merges.append((merged, t1, t2))
+
+        token_count = self.unpack_u32(data, offset)
+        offset += 4
+
+        tokens = []
+        for _ in range(token_count):
+            tokens.append(self.unpack_u16(data, offset))
+            offset += 2
+
+        # Expand in REVERSE creation order
+        for merged_token, t1, t2 in reversed(merges):
+            new_tokens = []
+            for t in tokens:
+                if t == merged_token:
+                    new_tokens.append(t1)
+                    new_tokens.append(t2)
+                else:
+                    new_tokens.append(t)
+            tokens = new_tokens
+
+        self.xml_string = ''.join(chr(t) for t in tokens)
