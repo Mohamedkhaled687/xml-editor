@@ -436,6 +436,8 @@ class XMLController:
                         relationship_dict = None # NEW: Reset the temporary relationship dict. 
 
                     # Pop closing tag from the parent stack
+                    # Only pop if the stack is non-empty and the top matches the closing tag
+                    # This handles well-formed XML; mismatched tags are silently skipped
                     if parent_stack and parent_stack[-1] == tag_name:
                         parent_stack.pop()
                     
@@ -462,7 +464,8 @@ class XMLController:
                         
                     elif current_container == 'id':
                         # Use parent stack to determine the correct context
-                        # parent_stack[-1] is 'id', parent_stack[-2] is the parent tag
+                        # parent_stack[-1] is 'id', parent_stack[-2] is the parent of 'id'
+                        # When len >= 2: [0, 1] means stack[-2] accesses index 0 safely
                         parent_tag = parent_stack[-2] if len(parent_stack) >= 2 else None
                         
                         if parent_tag in ('follower', 'following') and relationship_dict is not None:
