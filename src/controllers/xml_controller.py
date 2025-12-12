@@ -566,40 +566,50 @@ class XMLController:
     def decompress_from_string(self, compressed_string: str) -> None:
         data = bytearray(compressed_string.encode("latin-1"))
         offset = 0
+        try:
+            # Check for at least 4 bytes for merge_count
+            if len(data) < offset + 4:
+                raise ValueError("Compressed data too short to read merge_count.")
+            merge_count = ByteUtils.unpack_u32(data, offset)
+            offset += 4
 
-        merge_count = ByteUtils.unpack_u32(data, offset)
-        offset += 4
+            # Store merges in creation order
+            merges = []
+            for _ in range(merge_count):
+                if len(data) < offset + 6:
+                    raise ValueError("Compressed data too short to read merge tuple.")
+                t1 = ByteUtils.unpack_u16(data, offset)
+                offset += 2
+                t2 = ByteUtils.unpack_u16(data, offset)
+                offset += 2
+                merged = ByteUtils.unpack_u16(data, offset)
+                offset += 2
+                merges.append((merged, t1, t2))
 
-        # Store merges in creation order
-        merges = []
-        for _ in range(merge_count):
-            t1 = ByteUtils.unpack_u16(data, offset)
-            offset += 2
-            t2 = ByteUtils.unpack_u16(data, offset)
-            offset += 2
-            merged = ByteUtils.unpack_u16(data, offset)
-            offset += 2
-            merges.append((merged, t1, t2))
+            # Check for at least 4 bytes for token_count
+            if len(data) < offset + 4:
+                raise ValueError("Compressed data too short to read token_count.")
+            token_count = ByteUtils.unpack_u32(data, offset)
+            offset += 4
 
-        token_count = ByteUtils.unpack_u32(data, offset)
-        offset += 4
+            tokens = []
+            for _ in range(token_count):
+                if len(data) < offset + 2:
+                    raise ValueError("Compressed data too short to read token value.")
+                tokens.append(ByteUtils.unpack_u16(data, offset))
+                offset += 2
 
-        tokens = []
-        for _ in range(token_count):
-            tokens.append(ByteUtils.unpack_u16(data, offset))
-            offset += 2
+            # Expand in REVERSE creation order
+            for merged_token, t1, t2 in reversed(merges):
+                new_tokens = []
+                for t in tokens:
+                    if t == merged_token:
+                        new_tokens.append(t1)
+                        new_tokens.append(t2)
+                    else:
+                        new_tokens.append(t)
+                tokens = new_tokens
 
-        # Expand in REVERSE creation order
-        for merged_token, t1, t2 in reversed(merges):
-            new_tokens = []
-            for t in tokens:
-                if t == merged_token:
-                    new_tokens.append(t1)
-                    new_tokens.append(t2)
-                else:
-                    new_tokens.append(t)
-            tokens = new_tokens
-
-        self.xml_string = ''.join(chr(t) for t in tokens)
-
-"""
+            self.xml_string = ''.join(chr(t) for t in tokens)
+        except Exception as e:
+            raise ValueError(f"Failed to decompress string: {e}")
