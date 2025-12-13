@@ -562,8 +562,11 @@ class XMLController:
 
         return bytes([b if b < 256 else 63 for b in out]).decode("latin-1")
 
-    def decompress_from_string(self, compressed_string: str) -> None:
-        data = bytearray(compressed_string.encode("latin-1"))
+    def decompress_from_string(self, compressed_string: str = None) -> str:
+        if compressed_string is not None:
+            data = bytearray(compressed_string.encode("latin-1"))
+        else:
+            data = bytearray(self.xml_string.encode("latin-1"))
         offset = 0
         try:
             # Check for at least 4 bytes for merge_count
@@ -610,5 +613,6 @@ class XMLController:
                 tokens = new_tokens
 
             self.xml_string = ''.join(chr(t) for t in tokens)
+            return self.xml_string
         except Exception as e:
             raise ValueError(f"Failed to decompress string: {e}")
