@@ -1,0 +1,6 @@
+1. fix json output box style.
+2. remove formatter from fix_errors controller function.
+3. resolve compress and decompress conflicts.
+4. isolate operation and prevent setting result in the controller's attribute.
+   (operation done on the input xml only with being affected from another one)
+5. fix window problems in the project (maximize - minimize)
