@@ -644,7 +644,6 @@ class XMLController:
                         new_tokens.append(t)
                 tokens = new_tokens
 
-            self.xml_string = ''.join(chr(t) for t in tokens)
-            return self.xml_string
+            return ''.join(chr(t) for t in tokens)
         except Exception as e:
             raise ValueError(f"Failed to decompress string: {e}")

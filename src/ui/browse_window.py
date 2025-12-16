@@ -29,12 +29,12 @@ class BrowseWindow(BaseXMLWindow):
         file_widget.setObjectName("filePanel")
         file_layout = QVBoxLayout(file_widget)
         file_layout.setContentsMargins(20, 20, 20, 20)
-        file_layout.setSpacing(15)
+        file_layout.setSpacing(10)
 
         file_title = QLabel("Load XML Data")
         file_title.setStyleSheet("""
             QLabel {
-                color: rgba(100, 230, 255, 255);
+                color: rgba(200, 210, 220, 255);
                 font-size: 22px;
                 font-weight: bold;
             }

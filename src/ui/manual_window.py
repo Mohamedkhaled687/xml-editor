@@ -32,7 +32,7 @@ class ManualWindow(BaseXMLWindow):
         text_title = QLabel("Enter XML Data")
         text_title.setStyleSheet("""
             QLabel {
-                color: rgba(100, 230, 255, 255);
+                color: rgba(200, 210, 220, 255);
                 font-size: 22px;
                 font-weight: bold;
             }

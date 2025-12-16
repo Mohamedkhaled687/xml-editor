@@ -92,12 +92,12 @@ class BaseXMLWindow(QMainWindow):
         result_widget.setObjectName("resultPanel")
         result_layout = QVBoxLayout(result_widget)
         result_layout.setContentsMargins(20, 20, 20, 20)
-        result_layout.setSpacing(15)
+        result_layout.setSpacing(10)
 
         result_title = QLabel("Operation Result")
         result_title.setStyleSheet("""
             QLabel {
-                color: rgba(100, 230, 255, 255);
+                color: rgba(200, 210, 220, 255);
                 font-size: 22px;
                 font-weight: bold;
             }
@@ -110,7 +110,7 @@ class BaseXMLWindow(QMainWindow):
         save_btn.clicked.connect(self.save)
 
         result_title_layout = QHBoxLayout()
-        result_title_layout.setContentsMargins(20, 20, 20, 20)
+        result_title_layout.setContentsMargins(5, 5, 5, 5)
         result_title_layout.setSpacing(40)
 
         result_title_layout.addWidget(result_title)
@@ -130,36 +130,47 @@ class BaseXMLWindow(QMainWindow):
         ops_widget = QWidget()
         ops_widget.setObjectName("opsPanel")
         ops_layout = QVBoxLayout(ops_widget)
-        ops_layout.setContentsMargins(20, 20, 20, 20)
-        ops_layout.setSpacing(15)
+        ops_layout.setContentsMargins(20, 30, 20, 30)
+        ops_layout.setSpacing(17)
 
         ops_title = QLabel("Operations")
         ops_title.setStyleSheet("""
             QLabel {
-                color: rgba(100, 230, 255, 255);
-                font-size: 20px;
+                color: rgba(200, 210, 220, 255);
+                font-size: 25px;
                 font-weight: bold;
             }
         """)
+
+        ops_subtitle = QLabel("Manage, Transform and Analyze XML Data")
+        ops_subtitle.setContentsMargins(0, 0, 0, 10)
+        ops_subtitle.setStyleSheet("""
+            QLabel {
+                color: rgba(200, 210, 220, 255);
+                font-size: 12px;
+            }
+        """)
+
         ops_layout.addWidget(ops_title)
+        ops_layout.addWidget(ops_subtitle)
 
         parsing_ops = [
-            ("📋 Validate XML Structure", self.validate_xml),
-            ("🛠️ Correct Errors", self.correct_errors),
+            ("📋 Check XML Errors", self.validate_xml),
+            ("🛠️ Fix XML Errors", self.correct_errors),
             ("✨ Format XML", self.format_xml),
-            ("📦 Compress File", self.compress),
-            ("📂 Decompress File", self.decompress),
+            ("📦 Compress XML", self.compress),
+            ("📂 Decompress to XML", self.decompress),
             ("✂️ Minify XML", self.minify),
-            ("📄 Export to JSON", self.export_to_json),
-            ("🕸️ Visualize Network Graph", self.visualize_network),
-            ("📊 Show Users Statistics", self.show_user_stats),
-            ("🔍 Search for Topic/Posts", self.search)
+            ("📄 XML to JSON", self.export_to_json),
+            ("🕸️ Explore Network", self.visualize_network),
+            ("🔍 Post search", self.search)
         ]
 
         for text, handler in parsing_ops:
             btn = QPushButton(text)
             btn.setObjectName("operationBtn")
-            btn.setMinimumHeight(42)
+            btn.setMinimumHeight(46)
+            # btn.setMaximumWidth(20)
             btn.clicked.connect(handler)
             ops_layout.addWidget(btn)
 
@@ -301,9 +312,10 @@ class BaseXMLWindow(QMainWindow):
                 border: 1px solid rgba(80, 120, 180, 150);
                 border-radius: 8px;
                 color: rgba(200, 220, 240, 255);
-                font-size: 13px;
+                font-size: 15px;
                 text-align: left;
-                padding-left: 15px;
+                font-weight: bold;
+                padding-left: 10px;
             }}
 
             #operationBtn:hover {{
@@ -398,7 +410,7 @@ class BaseXMLWindow(QMainWindow):
         self.output_text, error_counts = self.xml_controller.validate()
         self.result_text_box.setText(self.output_text)
         self.result_text_box.show()
-        
+
         # Show status message box
         if error_counts['total'] == 0:
             QMessageBox.information(
@@ -414,11 +426,11 @@ class BaseXMLWindow(QMainWindow):
                 error_details.append(f"- {error_counts['mismatches']} mismatch(es)")
             if error_counts['missing_closing_tags'] > 0:
                 error_details.append(f"- {error_counts['missing_closing_tags']} missing closing tag(s)")
-            
+
             QMessageBox.warning(
                 self,
                 "Validation Failed",
-                f"Found {error_counts['total']} error(s):\n" + "\n".join(error_details) + 
+                f"Found {error_counts['total']} error(s):\n" + "\n".join(error_details) +
                 "\n\nCheck the result box for detailed line-by-line annotations."
             )
 
@@ -430,7 +442,7 @@ class BaseXMLWindow(QMainWindow):
         self.output_text, correction_counts = self.xml_controller.autocorrect()
         self.result_text_box.setText(self.output_text)
         self.result_text_box.show()
-        
+
         # Show status message box
         if correction_counts['total_corrections'] == 0:
             QMessageBox.information(
@@ -446,7 +458,7 @@ class BaseXMLWindow(QMainWindow):
                 correction_details.append(f"- {correction_counts['stray_tags_removed']} stray closing tag(s) removed")
             if correction_counts['mismatches_fixed'] > 0:
                 correction_details.append(f"- {correction_counts['mismatches_fixed']} mismatch(es) fixed")
-            
+
             QMessageBox.information(
                 self,
                 "Corrections Applied",
@@ -476,9 +488,16 @@ class BaseXMLWindow(QMainWindow):
         if not self.error_event_handler():
             return
 
-        self.output_text = self.xml_controller.decompress_from_string(self.input_text)
-        self.result_text_box.setText(self.output_text)
-        self.result_text_box.show()
+        try:
+            self.output_text = self.xml_controller.decompress_from_string(self.input_text)
+            self.result_text_box.setText(self.output_text)
+            self.result_text_box.show()
+        except Exception as e:
+            QMessageBox.critical(
+                self,
+                "Decompression Error",
+                f"Failed to decompress the data:\n\n{str(e)}"
+            )
 
     def minify(self) -> None:
         """View XML file content in code viewer."""
@@ -518,29 +537,6 @@ class BaseXMLWindow(QMainWindow):
                 QMessageBox.critical(self, "Error", f"Failed to open graph visualization:\n{str(e)}")
         else:
             QMessageBox.critical(self, "Graph Build Failed", f"Failed to build graph:\n{error}")
-
-    def show_user_stats(self) -> None:
-        """Show user statistics."""
-        # if not self.data_controller or not self.data_controller.xml_data:
-        #     QMessageBox.warning(self, "No Data", "Please upload and parse an XML file first.")
-        #     return
-        #
-        # success, stats, error = self.data_controller.calculate_statistics()
-        #
-        # if success:
-        #
-        #     stats_text = (
-        #         f"User Statistics:\n\n"
-        #         f"Total Users: {stats.get('total_users', 0)}\n"
-        #         f"Total Posts: {stats.get('total_posts', 0)}\n"
-        #         f"Total Followers: {stats.get('total_followers', 0)}\n"
-        #         f"Total Following: {stats.get('total_following', 0)}\n"
-        #         f"Average Followers: {stats.get('avg_followers', 0):.2f}\n"
-        #         f"Average Posts: {stats.get('avg_posts', 0):.2f}"
-        #     )
-        #     QMessageBox.information(self, "User Statistics", stats_text)
-        # else:
-        #     QMessageBox.critical(self, "Statistics Failed", f"Failed to calculate statistics:\n{error}")
 
     def search(self) -> None:
         """

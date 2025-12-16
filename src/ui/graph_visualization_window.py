@@ -3,19 +3,16 @@ Enhanced Graph Visualization Window - Complete implementation for social network
 Supports multiple layout algorithms, interactive features, and image export
 """
 
-from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QLabel, 
-                              QPushButton, QComboBox, QSpinBox, QCheckBox,
-                              QGroupBox, QFileDialog, QMessageBox, QSlider, QTabWidget)
-from PySide6.QtCore import Qt, QTimer
-from PySide6.QtGui import QFont
+from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QLabel,
+                               QPushButton, QComboBox, QSpinBox, QCheckBox,
+                               QGroupBox, QFileDialog, QMessageBox, QSlider, QTabWidget)
 import matplotlib
-matplotlib.use('QtAgg')
-from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
-from matplotlib.figure import Figure
 import networkx as nx
 import matplotlib.pyplot as plt
-from matplotlib.patches import FancyArrowPatch
 import numpy as np
+from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
+from matplotlib.figure import Figure
+matplotlib.use('QtAgg')
 
 
 class GraphVisualizationWindow(QWidget):
@@ -29,13 +26,13 @@ class GraphVisualizationWindow(QWidget):
     - Export to various image formats
     - Network statistics display
     """
-    
+
     def __init__(self, nodes, edges, main_window_size, parent=None):
         super().__init__(parent)
         self.nodes = nodes  # {user_id: user_name}
         self.edges = edges  # [(from_id, to_id)] where from_id follows to_id
         self.main_window_size = main_window_size
-        
+
         # Graph settings
         self.current_layout = "circular"
         self.show_labels = True
@@ -43,11 +40,11 @@ class GraphVisualizationWindow(QWidget):
         self.node_color_scheme = "influence"
         self.edge_width = 2.0
         self.node_base_size = 800
-        
+
         # Track selected users for highlighting
         self.selected_users = set()
         self.selected_mutual_followers = set()
-        
+
         # Graph and metrics should be provided by the controller
         # They are stored separately here for visualization purposes
         self.graph = None
@@ -61,16 +58,16 @@ class GraphVisualizationWindow(QWidget):
             'out_degrees': {}
         }
         self.info_label = None
-        
+
         self.setup_ui()
         # Set graph data after UI is created so info_label exists
         self.set_graph_data(nodes, edges)
-    
+
     def set_graph_data(self, nodes: dict, edges: list, G=None, metrics=None) -> None:
         """Set graph data for visualization. Can optionally use precomputed graph and metrics from controller."""
         self.nodes = nodes
         self.edges = edges
-        
+
         if G is not None and metrics is not None:
             # Use precomputed graph and metrics from controller
             self.graph = G
@@ -78,7 +75,7 @@ class GraphVisualizationWindow(QWidget):
         else:
             # Build locally if not provided
             self._build_local_graph()
-        
+
         # Update info label with new metrics
         self._update_info_label()
         # Update statistics display
@@ -86,7 +83,7 @@ class GraphVisualizationWindow(QWidget):
         # Update most active user display
         self._update_most_active_group()
         self.draw_graph()
-    
+
     def _update_info_label(self) -> None:
         """Update the title bar info label with current metrics."""
         if self.info_label is not None:
@@ -95,49 +92,49 @@ class GraphVisualizationWindow(QWidget):
                 f"Edges: {self.metrics.get('num_edges', 0)} | "
                 f"Density: {self.metrics.get('density', 0):.3f}"
             )
-    
+
     def _build_local_graph(self) -> None:
         """Build a local NetworkX graph for visualization if not provided by controller."""
         import networkx as nx
         import numpy as np
-        
+
         G = nx.DiGraph()
-        
+
         # Add all nodes
         for node_id, node_name in self.nodes.items():
             G.add_node(str(node_id), name=node_name)
-        
+
         # Add all edges
         for from_id, to_id in self.edges:
             if str(from_id) in G.nodes() and str(to_id) in G.nodes():
                 G.add_edge(str(from_id), str(to_id))
-        
+
         self.graph = G
         self._calculate_local_metrics()
-    
+
     def _calculate_local_metrics(self) -> None:
         """Calculate metrics locally if not provided by controller."""
         import networkx as nx
         import numpy as np
-        
+
         if self.graph is None:
             self.metrics = {}
             return
-        
+
         metrics = {}
-        
+
         # Basic metrics
         metrics['num_nodes'] = self.graph.number_of_nodes()
         metrics['num_edges'] = self.graph.number_of_edges()
         metrics['density'] = nx.density(self.graph)
-        
+
         # Degree metrics
         in_degrees = dict(self.graph.in_degree())
         out_degrees = dict(self.graph.out_degree())
-        
+
         metrics['avg_in_degree'] = np.mean(list(in_degrees.values())) if in_degrees else 0
         metrics['avg_out_degree'] = np.mean(list(out_degrees.values())) if out_degrees else 0
-        
+
         # Most influential
         if in_degrees:
             most_influential_id = max(in_degrees, key=in_degrees.get)
@@ -146,7 +143,7 @@ class GraphVisualizationWindow(QWidget):
                 'name': self.nodes.get(most_influential_id, 'Unknown'),
                 'followers': in_degrees[most_influential_id]
             }
-        
+
         # Most active
         if out_degrees:
             most_active_id = max(out_degrees, key=out_degrees.get)
@@ -155,43 +152,43 @@ class GraphVisualizationWindow(QWidget):
                 'name': self.nodes.get(most_active_id, 'Unknown'),
                 'following': out_degrees[most_active_id]
             }
-        
+
         metrics['in_degrees'] = in_degrees
         metrics['out_degrees'] = out_degrees
-        
+
         self.metrics = metrics
-    
+
     def setup_ui(self):
         """Set up the user interface."""
         self.setWindowTitle("Social Network Graph Visualization - Advanced")
         self.resize(self.main_window_size)
-        
+
         main_layout = QHBoxLayout(self)
         main_layout.setContentsMargins(0, 0, 0, 0)
         main_layout.setSpacing(0)
-        
+
         # Left side - Graph canvas
         graph_container = QWidget()
         graph_layout = QVBoxLayout(graph_container)
         graph_layout.setContentsMargins(0, 0, 0, 0)
         graph_layout.setSpacing(0)
-        
+
         # Title bar
         title_bar = self._create_title_bar()
         graph_layout.addWidget(title_bar)
-        
+
         # Matplotlib canvas
         self.figure = Figure(figsize=(12, 8), facecolor='white')
         self.canvas = FigureCanvas(self.figure)
         graph_layout.addWidget(self.canvas)
-        
+
         # Right side - Control panel
         control_panel = self._create_control_panel()
-        
+
         # Add to main layout
         main_layout.addWidget(graph_container, 3)
         main_layout.addWidget(control_panel, 1)
-    
+
     def _create_title_bar(self):
         """Create the title bar with graph information."""
         title_bar = QWidget()
@@ -204,26 +201,29 @@ class GraphVisualizationWindow(QWidget):
             }
         """)
         title_bar.setFixedHeight(60)
-        
+
         title_layout = QHBoxLayout(title_bar)
         title_layout.setContentsMargins(20, 10, 20, 10)
-        
+
         # Title and info
         title_label = QLabel("🔗 Social Network Graph Visualization")
         title_label.setStyleSheet("""
+            background-color: transparent;
             color: white;
             font-size: 18px;
             font-weight: bold;
         """)
-        
+
         self.info_label = QLabel(
             f"Nodes: {self.metrics.get('num_nodes', 0)} | "
             f"Edges: {self.metrics.get('num_edges', 0)} | "
             f"Density: {self.metrics.get('density', 0):.3f}"
         )
         self.info_label.setStyleSheet("""
+            background-color: transparent;  
             color: rgba(200, 220, 240, 255);
             font-size: 13px;
+            font-weight: bold;
         """)
         
         title_layout.addWidget(title_label)
