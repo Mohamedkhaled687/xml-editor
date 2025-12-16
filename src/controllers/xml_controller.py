@@ -35,7 +35,7 @@ class XMLController:
         xml_string (str): The XML content to be processed
     """
 
-    def __init__(self, xml: str = None):
+    def __init__(self, xml: str = None) -> None:
         """
         Initialize the XMLController with optional XML content.
 
@@ -232,7 +232,7 @@ class XMLController:
     # ===================================================================
 
 
-    def validate(self) -> str:
+    def validate(self) -> Tuple[str, Dict[str, int]]:
         """
         Parses self.xml_string, detects structural errors, and returns a new string
         where errors are annotated with '<---' at the end of the problematic lines.
@@ -241,9 +241,16 @@ class XMLController:
         (spelling mistakes choose a tag name that may not be the correct one to be chosen)
         
         Returns:
-            str: XML string with error annotations
+            Tuple[str, Dict[str, int]]: A tuple containing:
+                - XML string with error annotations
+                - Dictionary with error counts: {'orphan_tags': int, 'mismatches': int, 'missing_closing_tags': int, 'total': int}
         """
         stack = []
+        
+        # Initialize error counters
+        orphan_count = 0
+        mismatch_count = 0
+        missing_count = 0
 
         # Split string into a list of lines.
         # We will modify this list directly to add annotations.
@@ -270,6 +277,7 @@ class XMLController:
                     # CLOSING TAG
                     if not stack:
                         # Error: Closing tag found, but stack is empty
+                        orphan_count += 1
                         annotated_lines[line_idx] += f" <--- ORPHAN TAG: Found </{tag_name}> but no opening tag exists."
                     else:
                         top = stack[-1]
@@ -279,6 +287,7 @@ class XMLController:
                         else:
                             # Error: Mismatch
                             # We found a closing tag, but it doesn't match the most recent opening tag.
+                            mismatch_count += 1
                             annotated_lines[
                                 line_idx] += f" <--- MISMATCH: Expected </{top['tag']}>, found </{tag_name}>."
 
@@ -289,15 +298,25 @@ class XMLController:
         # After processing all lines, check if the stack is not empty.
         # These are tags that were opened but never closed.
         while stack:
+            missing_count += 1
             leftover = stack.pop()
             # We go back to the line where this tag was opened and add the error there
             idx = leftover['line_idx']
             annotated_lines[idx] += f" <--- MISSING CLOSING TAG: Tag <{leftover['tag']}> is never closed."
 
-        # Join the lines back into a single string to be displayed in the UI text box
-        return "\n".join(annotated_lines)
+        # Build error counts dictionary
+        error_counts = {
+            'orphan_tags': orphan_count,
+            'mismatches': mismatch_count,
+            'missing_closing_tags': missing_count,
+            'total': orphan_count + mismatch_count + missing_count
+        }
 
-    def autocorrect(self) -> str:
+        # Join the lines back into a single string to be displayed in the UI text box
+        annotated_string = "\n".join(annotated_lines)
+        return annotated_string, error_counts
+
+    def autocorrect(self) -> Tuple[str, Dict[str, int]]:
         """
         Attempts to fix the XML by balancing tags.
         Returns the fixed XML string and updates self.xml_string.
@@ -306,10 +325,16 @@ class XMLController:
         (spelling mistakes choose a tag name that may not be the correct one to be chosen)
         
         Returns:
-            str: Fixed and formatted XML string
+            Tuple[str, Dict[str, int]]: A tuple containing:
+                - Fixed XML string (without formatting)
+                - Dictionary with correction counts: {'missing_tags_added': int, 'stray_tags_removed': int, 'mismatches_fixed': int, 'total_corrections': int}
         """
         stack = []
-        fixed_lines = []
+        
+        # Initialize correction counters
+        missing_tags_added = 0
+        stray_tags_removed = 0
+        mismatches_fixed = 0
 
         # We need to parse slightly differently: we want to rebuild the string
         # Regex to tokenize: Tag OR non-tag content
@@ -349,12 +374,14 @@ class XMLController:
                             while stack[-1] != tag_name:
                                 missing_tag = stack.pop()
                                 corrected_output.append(f"</{missing_tag}>")
+                                mismatches_fixed += 1  # Track intermediate tag closure
 
                             # Now pop the matching tag
                             stack.pop()
                             corrected_output.append(token)
                         else:
                             # It's a stray closing tag that wasn't opened. Ignore/Delete it.
+                            stray_tags_removed += 1  # Track removed stray tag
                             pass
             else:
                 # Just text content, append as is
@@ -364,10 +391,20 @@ class XMLController:
         while stack:
             missing_tag = stack.pop()
             corrected_output.append(f"</{missing_tag}>")
+            missing_tags_added += 1  # Track added missing closing tag
+
+        # Build correction counts dictionary
+        correction_counts = {
+            'missing_tags_added': missing_tags_added,
+            'stray_tags_removed': stray_tags_removed,
+            'mismatches_fixed': mismatches_fixed,
+            'total_corrections': missing_tags_added + stray_tags_removed + mismatches_fixed
+        }
 
         # Update the class attribute
-        self.xml_string = "".join(corrected_output)
-        return self.format()
+        corrected_string = "".join(corrected_output)
+        self.xml_string = corrected_string
+        return corrected_string, correction_counts
 
     # ===================================================================
     # SECTION 5: JSON EXPORT METHOD

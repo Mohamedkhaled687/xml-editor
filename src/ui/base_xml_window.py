@@ -395,18 +395,64 @@ class BaseXMLWindow(QMainWindow):
         if not self.error_event_handler():
             return
 
-        self.output_text = self.xml_controller.validate()
+        self.output_text, error_counts = self.xml_controller.validate()
         self.result_text_box.setText(self.output_text)
         self.result_text_box.show()
+        
+        # Show status message box
+        if error_counts['total'] == 0:
+            QMessageBox.information(
+                self,
+                "Validation Success",
+                "XML structure is valid!\nNo errors found."
+            )
+        else:
+            error_details = []
+            if error_counts['orphan_tags'] > 0:
+                error_details.append(f"- {error_counts['orphan_tags']} orphan tag(s)")
+            if error_counts['mismatches'] > 0:
+                error_details.append(f"- {error_counts['mismatches']} mismatch(es)")
+            if error_counts['missing_closing_tags'] > 0:
+                error_details.append(f"- {error_counts['missing_closing_tags']} missing closing tag(s)")
+            
+            QMessageBox.warning(
+                self,
+                "Validation Failed",
+                f"Found {error_counts['total']} error(s):\n" + "\n".join(error_details) + 
+                "\n\nCheck the result box for detailed line-by-line annotations."
+            )
 
     def correct_errors(self) -> None:
-        """Parse user data and show statistics."""
+        """Correct XML errors and show correction status."""
         if not self.error_event_handler():
             return
 
-        self.output_text = self.xml_controller.autocorrect()
+        self.output_text, correction_counts = self.xml_controller.autocorrect()
         self.result_text_box.setText(self.output_text)
         self.result_text_box.show()
+        
+        # Show status message box
+        if correction_counts['total_corrections'] == 0:
+            QMessageBox.information(
+                self,
+                "No Corrections Needed",
+                "XML structure is already correct!\nNo errors found to fix."
+            )
+        else:
+            correction_details = []
+            if correction_counts['missing_tags_added'] > 0:
+                correction_details.append(f"- {correction_counts['missing_tags_added']} missing closing tag(s) added")
+            if correction_counts['stray_tags_removed'] > 0:
+                correction_details.append(f"- {correction_counts['stray_tags_removed']} stray closing tag(s) removed")
+            if correction_counts['mismatches_fixed'] > 0:
+                correction_details.append(f"- {correction_counts['mismatches_fixed']} mismatch(es) fixed")
+            
+            QMessageBox.information(
+                self,
+                "Corrections Applied",
+                f"Fixed {correction_counts['total_corrections']} error(s):\n" + "\n".join(correction_details) +
+                "\n\nCheck the result box to see the corrected XML."
+            )
 
     def format_xml(self) -> None:
         """Format/prettify XML file."""
