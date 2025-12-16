@@ -461,7 +461,11 @@ class BaseXMLWindow(QMainWindow):
 
         if success:
             try:
+                # Pass graph and metrics from controller to visualization
+                G = self.graph_controller.get_graph()
+                metrics = self.graph_controller.get_metrics()
                 graph_window = GraphVisualizationWindow(nodes, edges, self.size(), self)
+                graph_window.set_graph_data(nodes, edges, G, metrics)
                 graph_window.show()
             except Exception as e:
                 QMessageBox.critical(self, "Error", f"Failed to open graph visualization:\n{str(e)}")
