@@ -6,7 +6,8 @@ import xml.etree.ElementTree as ET
 from typing import Optional, Tuple, Dict, List
 import networkx as nx
 import numpy as np
-from ..utilities import DataParser, NetworkAnalyzer
+from ..utils.data_parser import DataParser
+from ..utils.network_analyzer import NetworkAnalyzer
 
 
 class GraphController:
@@ -201,5 +202,3 @@ class GraphController:
         if not self.analyzer:
             return []
         return self.analyzer.get_top_engaged_users(n)
-
-

@@ -37,12 +37,12 @@ class GraphVisualizationWindow(QWidget):
         self.main_window_size = main_window_size
         
         # Graph settings
-        self.current_layout = "spring"
+        self.current_layout = "circular"
         self.show_labels = True
         self.show_node_size_by_influence = True
         self.node_color_scheme = "influence"
-        self.edge_width = 1.5
-        self.node_base_size = 500
+        self.edge_width = 2.0
+        self.node_base_size = 800
         
         # Track selected users for highlighting
         self.selected_users = set()
@@ -442,6 +442,7 @@ class GraphVisualizationWindow(QWidget):
             "Kamada-Kawai Layout",
             "Random Layout"
         ])
+        self.layout_combo.setCurrentIndex(1)  # Default to Circular Layout
         self.layout_combo.currentIndexChanged.connect(self.on_layout_changed)
         layout.addWidget(self.layout_combo)
         
@@ -728,17 +729,19 @@ class GraphVisualizationWindow(QWidget):
         if scheme_index == 0:  # By Influence (Blue gradient)
             in_degrees = self.metrics.get('in_degrees', {})
             max_influence = max(in_degrees.values()) if in_degrees.values() else 1
-            colors = [in_degrees.get(node, 0) / max_influence for node in self.graph.nodes()]
+            # Use 0.3 to 1.0 range for better visibility (avoid very light colors)
+            colors = [0.3 + 0.7 * (in_degrees.get(node, 0) / max_influence) for node in self.graph.nodes()]
             return colors
         
         elif scheme_index == 1:  # By Activity (Green gradient)
             out_degrees = self.metrics.get('out_degrees', {})
             max_activity = max(out_degrees.values()) if out_degrees.values() else 1
-            colors = [out_degrees.get(node, 0) / max_activity for node in self.graph.nodes()]
+            # Use 0.3 to 1.0 range for better visibility (avoid very light colors)
+            colors = [0.3 + 0.7 * (out_degrees.get(node, 0) / max_activity) for node in self.graph.nodes()]
             return colors
         
         elif scheme_index == 2:  # Uniform
-            return ['steelblue'] * self.graph.number_of_nodes()
+            return ['#4A90D9'] * self.graph.number_of_nodes()
         
         else:  # Random colors
             np.random.seed(42)
@@ -768,24 +771,32 @@ class GraphVisualizationWindow(QWidget):
         scheme_index = self.color_combo.currentIndex()
         if scheme_index == 0:
             cmap = plt.cm.Blues
-            vmin, vmax = 0, 1
+            vmin, vmax = 0.3, 1
         elif scheme_index == 1:
             cmap = plt.cm.Greens
-            vmin, vmax = 0, 1
+            vmin, vmax = 0.3, 1
         else:
             cmap = None
             vmin, vmax = None, None
+        
+        # Calculate margin based on node sizes (to make arrows end at node edge)
+        # The margin is approximately sqrt(node_size) / 2 for circular nodes
+        avg_node_size = sum(node_sizes) / len(node_sizes) if node_sizes else 500
+        node_margin = (avg_node_size ** 0.5) / 2
         
         # Draw edges
         nx.draw_networkx_edges(
             self.graph, pos, ax=ax,
             arrows=True,
-            arrowsize=15,
-            arrowstyle='->',
-            edge_color='gray',
+            arrowsize=20,
+            arrowstyle='-|>',
+            edge_color='#555555',
             width=self.edge_width,
-            alpha=0.5,
-            connectionstyle='arc3,rad=0.1'
+            alpha=0.7,
+            connectionstyle='arc3,rad=0.1',
+            node_size=node_sizes,
+            min_source_margin=node_margin,
+            min_target_margin=node_margin
         )
         
         # Draw nodes
@@ -797,31 +808,33 @@ class GraphVisualizationWindow(QWidget):
                 cmap=cmap,
                 vmin=vmin,
                 vmax=vmax,
-                alpha=0.9,
-                edgecolors='white',
-                linewidths=2
+                alpha=1.0,
+                edgecolors='#333333',
+                linewidths=2.5
             )
         else:
             nx.draw_networkx_nodes(
                 self.graph, pos, ax=ax,
                 node_color=node_colors,
                 node_size=node_sizes,
-                alpha=0.9,
-                edgecolors='white',
-                linewidths=2
+                alpha=1.0,
+                edgecolors='#333333',
+                linewidths=2.5
             )
         
         # Highlight selected users if any
         if self.selected_users:
             selected_nodes = [n for n in self.selected_users if n in self.graph.nodes()]
             if selected_nodes:
-                selected_sizes = [self.get_node_sizes()[list(self.graph.nodes()).index(n)] for n in selected_nodes]
+                # Use the same size as the actual node
+                all_nodes_list = list(self.graph.nodes())
+                selected_sizes = [node_sizes[all_nodes_list.index(n)] for n in selected_nodes]
                 nx.draw_networkx_nodes(
                     self.graph.subgraph(selected_nodes), pos, ax=ax,
-                    node_color='steelblue',
+                    node_color='#FF6B6B',
                     node_size=selected_sizes,
                     alpha=1.0,
-                    edgecolors='white',
+                    edgecolors='#333333',
                     linewidths=3
                 )
         
@@ -829,13 +842,15 @@ class GraphVisualizationWindow(QWidget):
         if self.selected_mutual_followers:
             mutual_nodes = [n for n in self.selected_mutual_followers if n in self.graph.nodes()]
             if mutual_nodes:
-                mutual_sizes = [self.get_node_sizes()[list(self.graph.nodes()).index(n)] for n in mutual_nodes]
+                # Use the same size as the actual node
+                all_nodes_list = list(self.graph.nodes())
+                mutual_sizes = [node_sizes[all_nodes_list.index(n)] for n in mutual_nodes]
                 nx.draw_networkx_nodes(
                     self.graph.subgraph(mutual_nodes), pos, ax=ax,
-                    node_color='steelblue',
+                    node_color='#50C878',
                     node_size=mutual_sizes,
                     alpha=1.0,
-                    edgecolors='white',
+                    edgecolors='#333333',
                     linewidths=3
                 )
         
@@ -844,9 +859,9 @@ class GraphVisualizationWindow(QWidget):
             labels = {node: self.nodes.get(node, node) for node in self.graph.nodes()}
             nx.draw_networkx_labels(
                 self.graph, pos, labels, ax=ax,
-                font_size=9,
+                font_size=10,
                 font_weight='bold',
-                font_color='darkblue'
+                font_color='red'
             )
         
         # Set title

@@ -9,11 +9,11 @@ from PySide6.QtCore import Qt, Signal, QSize
 
 # Controller imports
 from ..controllers import XMLController
-# from ..controllers import DataController, GraphController  # TODO: Implement these controllers if needed
+from ..controllers import GraphController
 
 # UI window imports
 from .code_viewer_window import CodeViewerWindow
-# from .graph_visualization_window import GraphVisualizationWindow  # TODO: Implement if needed
+from .graph_visualization_window import GraphVisualizationWindow
 
 # utilities imports
 from ..utils import file_io
@@ -33,7 +33,7 @@ class BaseXMLWindow(QMainWindow):
         # Initialize controllers
         self.xml_controller: XMLController = XMLController()
         # self.data_controller: DataController = DataController()  # TODO: Implement DataController
-        # self.graph_controller: GraphController = GraphController()  # TODO: Implement GraphController
+        self.graph_controller: GraphController = GraphController()
 
         self.input_text: str = ""
         self.output_text: str = ""
@@ -453,20 +453,20 @@ class BaseXMLWindow(QMainWindow):
 
     def visualize_network(self) -> None:
         """Visualize network graph."""
-        # if not self.graph_controller or not self.graph_controller.xml_data:
-        #     QMessageBox.warning(self, "No Data", "Please upload and parse an XML file first.")
-        #     return
-        #
-        # success, nodes, edges, error = self.graph_controller.build_graph()
-        #
-        # if success:
-        #     try:
-        #         graph_window = GraphVisualizationWindow(nodes, edges, self.size(), self)
-        #         graph_window.show()
-        #     except Exception as e:
-        #         QMessageBox.critical(self, "Error", f"Failed to open graph visualization:\n{str(e)}")
-        # else:
-        #     QMessageBox.critical(self, "Graph Build Failed", f"Failed to build graph:\n{error}")
+        if not self.graph_controller or not self.graph_controller.xml_data:
+            QMessageBox.warning(self, "No Data", "Please upload and parse an XML file first.")
+            return
+
+        success, nodes, edges, error = self.graph_controller.build_graph()
+
+        if success:
+            try:
+                graph_window = GraphVisualizationWindow(nodes, edges, self.size(), self)
+                graph_window.show()
+            except Exception as e:
+                QMessageBox.critical(self, "Error", f"Failed to open graph visualization:\n{str(e)}")
+        else:
+            QMessageBox.critical(self, "Graph Build Failed", f"Failed to build graph:\n{error}")
 
     def show_user_stats(self) -> None:
         """Show user statistics."""
