@@ -646,4 +646,4 @@ class XMLController:
 
             return ''.join(chr(t) for t in tokens)
         except Exception as e:
-            raise ValueError(f"Failed to decompress string: {e}")
+            raise ValueError(f"{e}")
