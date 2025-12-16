@@ -532,7 +532,7 @@ class BaseXMLWindow(QMainWindow):
                 metrics = self.graph_controller.get_metrics()
                 graph_window = GraphVisualizationWindow(nodes, edges, self.size(), self)
                 graph_window.set_graph_data(nodes, edges, G, metrics)
-                graph_window.show()
+                graph_window.showMaximized()
             except Exception as e:
                 QMessageBox.critical(self, "Error", f"Failed to open graph visualization:\n{str(e)}")
         else:

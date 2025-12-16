@@ -31,7 +31,7 @@ class AppManager:
         self.landing_window.manual_clicked.connect(self.show_manual_mode)
 
         # Show landing window
-        self.landing_window.show()
+        self.landing_window.showMaximized()
 
     def show_browse_mode(self):
         """Show browse mode window."""
@@ -41,7 +41,7 @@ class AppManager:
             self.browse_window.back_clicked.connect(self.show_landing)
 
         self.landing_window.hide()
-        self.browse_window.show()
+        self.browse_window.showMaximized()
 
     def show_manual_mode(self):
         """Show manual mode window."""
@@ -51,7 +51,7 @@ class AppManager:
             self.manual_window.back_clicked.connect(self.show_landing)
 
         self.landing_window.hide()
-        self.manual_window.show()
+        self.manual_window.showMaximized()
 
     def show_landing(self):
         """Return to landing window."""
@@ -59,7 +59,7 @@ class AppManager:
             self.browse_window.hide()
         if self.manual_window:
             self.manual_window.hide()
-        self.landing_window.show()
+        self.landing_window.showMaximized()
 
     def run(self):
         """Start the Qt event loop."""
