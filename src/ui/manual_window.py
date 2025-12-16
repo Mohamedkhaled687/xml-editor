@@ -77,6 +77,7 @@ class ManualWindow(BaseXMLWindow):
 
         try:
             self.xml_controller.set_xml_string(self.input_text)
+            self.graph_controller.set_xml_data(self.input_text)
         except Exception as e:
             QMessageBox.warning(
                 self,

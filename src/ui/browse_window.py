@@ -110,6 +110,7 @@ class BrowseWindow(BaseXMLWindow):
 
         try:
             self.xml_controller.set_xml_string(result)
+            self.graph_controller.set_xml_data(result)
         except Exception as e:
             QMessageBox.warning(self, "XML Error", str(e))
             return
