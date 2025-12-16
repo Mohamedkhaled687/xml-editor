@@ -3,9 +3,9 @@ Data Parser - Handles parsing and validation of XML data into structured Python 
 Provides a robust interface for extracting user data, relationships, and graph structure.
 """
 
-import xml.etree.ElementTree as ET
 from typing import Dict, List, Tuple, Optional
 from dataclasses import dataclass
+from .xml_tree import XMLTree, XMLNode, XMLParseError
 
 
 @dataclass
@@ -26,13 +26,13 @@ class DataParser:
         Initialize parser with XML data.
         
         Args:
-            xml_data: Root XML element or XML string
+            xml_data: Root XMLNode element or XML string
         """
-        # Handle both ET.Element and string input
+        # Handle both XMLNode and string input
         if isinstance(xml_data, str):
             try:
-                self.xml_data = ET.fromstring(xml_data)
-            except ET.ParseError as e:
+                self.xml_data = XMLTree.fromstring(xml_data)
+            except XMLParseError as e:
                 raise ValueError(f"Invalid XML string: {str(e)}")
         else:
             self.xml_data = xml_data
@@ -140,7 +140,7 @@ class DataParser:
         self._edges_cache = edges
         return edges
     
-    def _extract_user_id(self, user_elem: ET.Element) -> Optional[str]:
+    def _extract_user_id(self, user_elem: XMLNode) -> Optional[str]:
         """Extract user ID from element (supports both attribute and child element)."""
         # Try attribute first
         user_id = user_elem.get('id')
@@ -154,7 +154,7 @@ class DataParser:
         
         return None
     
-    def _extract_followers(self, user_elem: ET.Element) -> List[str]:
+    def _extract_followers(self, user_elem: XMLNode) -> List[str]:
         """Extract follower IDs from user element."""
         followers = []
         
@@ -167,7 +167,7 @@ class DataParser:
         
         return followers
     
-    def _extract_following(self, user_elem: ET.Element) -> List[str]:
+    def _extract_following(self, user_elem: XMLNode) -> List[str]:
         """Extract following IDs from user element."""
         following = []
         

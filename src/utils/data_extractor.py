@@ -3,20 +3,20 @@ Data Extractor - Handles extracting structured data from XML elements.
 Provides utilities for parsing users, followers, and graph relationships.
 """
 
-import xml.etree.ElementTree as ET
 from typing import Dict, List, Tuple, Optional
+from .xml_tree import XMLNode
 
 
 class DataExtractor:
     """Utility class for extracting data from XML elements."""
     
     @staticmethod
-    def extract_users(xml_data: ET.Element) -> Dict[str, str]:
+    def extract_users(xml_data: XMLNode) -> Dict[str, str]:
         """
         Extract user nodes from XML data.
         
         Args:
-            xml_data: XML root element
+            xml_data: XML root element (XMLNode)
             
         Returns:
             dict: {user_id: user_name}
@@ -43,13 +43,13 @@ class DataExtractor:
         return nodes
     
     @staticmethod
-    def extract_edges(xml_data: ET.Element) -> List[Tuple[str, str]]:
+    def extract_edges(xml_data: XMLNode) -> List[Tuple[str, str]]:
         """
         Extract relationship edges from XML data.
         Handles both follower and connection-based structures.
         
         Args:
-            xml_data: XML root element
+            xml_data: XML root element (XMLNode)
             
         Returns:
             list: [(from_id, to_id)] where from_id follows to_id
@@ -88,12 +88,12 @@ class DataExtractor:
         return edges
     
     @staticmethod
-    def extract_user_posts(user_elem: ET.Element) -> List[Dict]:
+    def extract_user_posts(user_elem: XMLNode) -> List[Dict]:
         """
         Extract posts from a user element.
         
         Args:
-            user_elem: User XML element
+            user_elem: User XML element (XMLNode)
             
         Returns:
             list: List of post dictionaries with content and topics
@@ -122,12 +122,12 @@ class DataExtractor:
         return posts
     
     @staticmethod
-    def extract_user_followers(user_elem: ET.Element) -> List[str]:
+    def extract_user_followers(user_elem: XMLNode) -> List[str]:
         """
         Extract follower IDs from a user element.
         
         Args:
-            user_elem: User XML element
+            user_elem: User XML element (XMLNode)
             
         Returns:
             list: List of follower user IDs
@@ -145,12 +145,12 @@ class DataExtractor:
         return followers
     
     @staticmethod
-    def extract_user_following(user_elem: ET.Element) -> List[str]:
+    def extract_user_following(user_elem: XMLNode) -> List[str]:
         """
         Extract following IDs from a user element.
         
         Args:
-            user_elem: User XML element
+            user_elem: User XML element (XMLNode)
             
         Returns:
             list: List of user IDs this user is following
@@ -168,12 +168,12 @@ class DataExtractor:
         return following
     
     @staticmethod
-    def extract_graph_data(xml_data: ET.Element) -> Tuple[Dict[str, str], List[Tuple[str, str]]]:
+    def extract_graph_data(xml_data: XMLNode) -> Tuple[Dict[str, str], List[Tuple[str, str]]]:
         """
         Extract complete graph data (nodes and edges) from XML.
         
         Args:
-            xml_data: XML root element
+            xml_data: XML root element (XMLNode)
             
         Returns:
             tuple: (nodes_dict, edges_list)
@@ -183,12 +183,12 @@ class DataExtractor:
         return nodes, edges
     
     @staticmethod
-    def extract_user_degree_info(user_elem: ET.Element, user_id: str) -> Dict:
+    def extract_user_degree_info(user_elem: XMLNode, user_id: str) -> Dict:
         """
         Extract degree information (followers and following count) for a user.
         
         Args:
-            user_elem: User XML element
+            user_elem: User XML element (XMLNode)
             user_id: User ID
             
         Returns:
