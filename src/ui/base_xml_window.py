@@ -340,7 +340,7 @@ class BaseXMLWindow(QMainWindow):
             self,
             "Save Result",
             "",
-            "XML Files (*.xml);;JSON Files (*.json);;All Files (*)"
+            "Text Files (*.txt);; XML Files (*.xml);;JSON Files (*.json);;All Files (*)"
         )
 
         if not file_path:
@@ -429,7 +429,7 @@ class BaseXMLWindow(QMainWindow):
         if not self.error_event_handler():
             return
 
-        self.output_text = self.xml_controller.decompress_from_string()
+        self.output_text = self.xml_controller.decompress_from_string(self.input_text)
         self.result_text_box.setText(self.output_text)
         self.result_text_box.show()
 
@@ -448,7 +448,7 @@ class BaseXMLWindow(QMainWindow):
             return
 
         self.output_text = self.xml_controller.export_to_json()
-        self.result_text_box.setText(self.output_text)
+        self.result_text_box.setText(str(self.output_text))
         self.result_text_box.show()
 
     def visualize_network(self) -> None:
@@ -599,4 +599,3 @@ class BaseXMLWindow(QMainWindow):
         #     return self.data_controller.search_in_posts(word = keyword)
         # else:
         #     return self.data_controller.search_in_posts(topic = keyword)
-
