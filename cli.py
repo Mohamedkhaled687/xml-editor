@@ -3,10 +3,11 @@ import json
 import sys
 import os
 
+
 # Add project root to path
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from src.controllers import XMLController
+from src.controllers import XMLController, GraphController
 from src.utils import file_io
 
 parser = argparse.ArgumentParser(description="use XML editor in CLI mode")
@@ -42,73 +43,101 @@ search_arg.add_argument('-i',"--input",required=True,type=str,help='Path to the 
 search_arg.add_argument('-w',"--word",required=False,type=str,help='search with the given word')
 search_arg.add_argument('-t',"--topic",required=False,type=str,help='search with the given topic')
 
+active_arg = commands.add_parser('most_active', help= 'returns the most active person in a given input xml file')
+active_arg.add_argument('-i',"--input",required=True,type=str,help='Path to the input XML file')
+
+influencer_arg = commands.add_parser('most_influencer', help= 'returns the most influential person in a given input xml file')
+influencer_arg.add_argument('-i',"--input",required=True,type=str,help='Path to the input XML file')
+
 
 if len(sys.argv) == 1:
         parser.print_help()
         sys.exit(1)
 
 editor = XMLController()
+graph = GraphController()
 args = parser.parse_args()
-if args.command == 'verify':
-    if args.fix and args.output is None:
-        print("invalid usage")
+match args.command:
 
-    if file_io.read_file(args.input)[0]:
-        editor.set_xml_string(file_io.read_file(args.input)[1])
-        annotated_xml, error_counts = editor.validate()
-        editor.set_xml_string(annotated_xml)
-        ack = editor.format()
-        if args.output is not None:
-            file_io.write_file(args.output, ack)
-        print(ack)
-    else:
-        print("invalid path")
+    case 'verify':
+        if args.fix and args.output is None:
+            print("invalid usage")
 
-if args.command == 'format':
-    if file_io.read_file(args.input)[0]:
-        editor.set_xml_string(file_io.read_file(args.input)[1])
-        ack = editor.format()
-        if args.output is not None:
-            file_io.write_file(args.output,ack)
-        print(ack)
-    else:
-        print("invalid file path")
-
-if args.command == 'json':
-    ack = file_io.read_file(args.input)
-    if ack[0]:
-        editor.set_xml_string(file_io.read_file(args.input)[1])
-        bool_mes, _, json_data = editor.export_to_json()
-        if bool_mes:
+        if file_io.read_file(args.input)[0]:
+            editor.set_xml_string(file_io.read_file(args.input)[1])
+            annotated_xml, error_counts = editor.validate()
+            editor.set_xml_string(annotated_xml)
+            ack = editor.format()
             if args.output is not None:
-                with open(args.output, 'w', encoding='utf-8') as f:
-                    json.dump(json_data, f, indent=2, ensure_ascii=False)
+                file_io.write_file(args.output, ack)
+            print(ack)
+        else:
+            print("invalid path")
+
+    case  'format':
+        if file_io.read_file(args.input)[0]:
+            editor.set_xml_string(file_io.read_file(args.input)[1])
+            ack = editor.format()
+            if args.output is not None:
+                file_io.write_file(args.output,ack)
+            print(ack)
+        else:
+            print("invalid file path")
+
+    case 'json':
+        ack = file_io.read_file(args.input)
+        if ack[0]:
+            editor.set_xml_string(file_io.read_file(args.input)[1])
+            bool_mes, _, json_data = editor.export_to_json()
+            if bool_mes:
+                if args.output is not None:
+                    with open(args.output, 'w', encoding='utf-8') as f:
+                        json.dump(json_data, f, indent=2, ensure_ascii=False)
+                else:
+                    print(f"json data format: \n\n{json_data}")
             else:
-                print(f"json data format: \n\n{json_data}")
+                print("invalid argument")
+
+    case 'compress':
+        ack = file_io.read_file(args.input)
+        if ack[0]:
+            editor.set_xml_string(file_io.read_file(args.input)[1])
+            editor.compress_to_string(output_path= args.output)
+            print(f"saved to {args.output}")
         else:
-            print("invalid argument")
+            print("failed to compress the file ... check input path")
 
-if args.command == 'compress':
-    ack = file_io.read_file(args.input)
-    if ack[0]:
-        editor.set_xml_string(file_io.read_file(args.input)[1])
-        editor.compress_to_string(output_path= args.output)
-        print(f"saved to {args.output}")
-    else:
-        print("failed to compress the file ... check input path")
-
-if args.command == 'decompress':
-    if args.output is not None:
-        editor.decompress_from_string(input_path=args.input, output_path=args.output)
-        print(f"saved to {args.output}")
-    else:
-        print(editor.decompress_from_string(input_path= args.input))
-
-if args.command == 'search':
-    ack = file_io.read_file(args.input)
-    if ack[0]:
-        editor.set_xml_string(file_io.read_file(args.input)[1])
-        if args.word is not None:
-            print(editor.search_in_posts(word= args.word))
+    case 'decompress':
+        if args.output is not None:
+            editor.decompress_from_string(input_path=args.input, output_path=args.output)
+            print(f"saved to {args.output}")
         else:
-            print(editor.search_in_posts(topic=args.topic))
+            print(editor.decompress_from_string(input_path= args.input))
+
+    case 'search':
+        ack = file_io.read_file(args.input)
+        if ack[0]:
+            editor.set_xml_string(file_io.read_file(args.input)[1])
+            if args.word is not None:
+                print(editor.search_in_posts(word= args.word))
+            else:
+                print(editor.search_in_posts(topic=args.topic))
+
+    case 'most_active':
+        ack = file_io.read_file(args.input)
+        if ack[0]:
+            graph.set_xml_data(ack[1])
+            graph.build_graph()
+            metrics = graph.get_metrics()
+            print(f"the most active person is: {metrics['most_active']['name']} \nwith an id of: {metrics['most_active']['id']}")
+
+    case 'most_influencer':
+        ack = file_io.read_file(args.input)
+        if ack[0]:
+            graph.set_xml_data(ack[1])
+            graph.build_graph()
+            metrics = graph.get_metrics()
+            print(
+                f"the person that has the most influence is: {metrics['most_influential']['name']} \nwith an id of: {metrics['most_influential']['id']}")
+
+    case 'draw':
