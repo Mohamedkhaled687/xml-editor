@@ -1,0 +1,250 @@
+<users>
+    <user>
+        <id>1</id>
+        <name>Ahmed Ali</name>
+        <posts>
+            <post>
+                <body>Exploring the intersection of global finance and emerging tech markets.</body>
+                <topics>
+                    <topic>economy</topic>
+                    <topic>finance</topic>
+                </topics>
+            </post>
+        </posts>
+        <followers>
+            <follower><id>2</id></follower>
+            <follower><id>5</id></follower>
+            <follower><id>15</id></follower>
+        </followers>
+    </user>
+    <user>
+        <id>2</id>
+        <name>Yasser Ahmed</name>
+        <posts>
+            <post>
+                <body>Morning routines are essential for peak physical health and performance.</body>
+                <topics>
+                    <topic>sports</topic>
+                    <topic>health</topic>
+                </topics>
+            </post>
+        </posts>
+        <followers>
+            <follower><id>1</id></follower>
+            <follower><id>6</id></follower>
+        </followers>
+    </user>
+    <user>
+        <id>3</id>
+        <name>Mohamed Sherif</name>
+        <posts>
+            <post>
+                <body>Analysing the historical impact of the Olympic games on local infrastructure.</body>
+                <topics>
+                    <topic>sports</topic>
+                    <topic>history</topic>
+                </topics>
+            </post>
+        </posts>
+        <followers>
+            <follower><id>1</id></follower>
+        </followers>
+    </user>
+    <user>
+        <id>4</id>
+        <name>Fady Faragallah</name>
+        <posts>
+            <post>
+                <body>Scalability in software engineering starts with a robust data model.</body>
+                <topics>
+                    <topic>Data</topic>
+                    <topic>Software Engineering</topic>
+                </topics>
+            </post>
+        </posts>
+        <followers>
+            <follower><id>1</id></follower>
+            <follower><id>3</id></follower>
+        </followers>
+    </user>
+    <user>
+        <id>5</id>
+        <name>Sara Mansour</name>
+        <posts>
+            <post>
+                <body>Modern interior design trends for compact living spaces.</body>
+                <topics>
+                    <topic>design</topic>
+                    <topic>lifestyle</topic>
+                </topics>
+            </post>
+        </posts>
+        <followers>
+            <follower><id>8</id></follower>
+        </followers>
+    </user>
+    <user>
+        <id>6</id>
+        <name>Omar Hassan</name>
+        <posts>
+            <post>
+                <body>The future of autonomous vehicles in urban environments.</body>
+                <topics>
+                    <topic>tech</topic>
+                    <topic>automotive</topic>
+                </topics>
+            </post>
+        </posts>
+        <followers>
+            <follower><id>9</id></follower>
+        </followers>
+    </user>
+    <user>
+        <id>7</id>
+        <name>Laila Kamel</name>
+        <posts>
+            <post>
+                <body>Baking the perfect sourdough requires patience and high hydration.</body>
+                <topics>
+                    <topic>food</topic>
+                    <topic>cooking</topic>
+                </topics>
+            </post>
+        </posts>
+        <followers>
+            <follower><id>4</id></follower>
+            <follower><id>10</id></follower>
+            <follower><id>14</id></follower>
+        </followers>
+    </user>
+    <user>
+        <id>8</id>
+        <name>Ziad Mahmoud</name>
+        <posts>
+            <post>
+                <body>Wildlife photography in the African savanna is a breath-taking experience.</body>
+                <topics>
+                    <topic>photography</topic>
+                    <topic>nature</topic>
+                </topics>
+            </post>
+        </posts>
+        <followers>
+            <follower><id>12</id></follower>
+        </followers>
+    </user>
+    <user>
+        <id>9</id>
+        <name>Nour El-Din</name>
+        <posts>
+            <post>
+                <body>Quantum computing: beyond the hype and into real-world applications.</body>
+                <topics>
+                    <topic>science</topic>
+                    <topic>tech</topic>
+                </topics>
+            </post>
+        </posts>
+        <followers>
+            <follower><id>13</id></follower>
+        </followers>
+    </user>
+    <user>
+        <id>10</id>
+        <name>Heba Fawzy</name>
+        <posts>
+            <post>
+                <body>A guide to sustainable traveling on a budget.</body>
+                <topics>
+                    <topic>travel</topic>
+                    <topic>environment</topic>
+                </topics>
+            </post>
+        </posts>
+        <followers>
+            <follower><id>14</id></follower>
+        </followers>
+    </user>
+    <user>
+        <id>11</id>
+        <name>Karim Reda</name>
+        <posts>
+            <post>
+                <body>The evolution of jazz music through the 20th century.</body>
+                <topics>
+                    <topic>music</topic>
+                    <topic>history</topic>
+                </topics>
+            </post>
+        </posts>
+        <followers>
+            <follower><id>7</id></follower>
+            <follower><id>15</id></follower>
+        </followers>
+    </user>
+    <user>
+        <id>12</id>
+        <name>Maya Selim</name>
+        <posts>
+            <post>
+                <body>Understanding the psychology behind consumer behavior.</body>
+                <topics>
+                    <topic>psychology</topic>
+                    <topic>marketing</topic>
+                </topics>
+            </post>
+        </posts>
+        <followers>
+            <follower><id>11</id></follower>
+        </followers>
+    </user>
+    <user>
+        <id>13</id>
+        <name>Tarek Soliman</name>
+        <posts>
+            <post>
+                <body>Essential gear for mountain hiking in extreme weather.</body>
+                <topics>
+                    <topic>outdoors</topic>
+                    <topic>adventure</topic>
+                </topics>
+            </post>
+        </posts>
+        <followers>
+            <follower><id>14</id></follower>
+        </followers>
+    </user>
+    <user>
+        <id>14</id>
+        <name>Dina Wassef</name>
+        <posts>
+            <post>
+                <body>The resurgence of vinyl records in a digital age.</body>
+                <topics>
+                    <topic>music</topic>
+                    <topic>tech</topic>
+                </topics>
+            </post>
+        </posts>
+        <followers>
+            <follower><id>13</id></follower>
+            <follower><id>10</id></follower>
+        </followers>
+    </user>
+    <user>
+        <id>15</id>
+        <name>Adam Gaber</name>
+        <posts>
+            <post>
+                <body>Why learning a second language improves cognitive flexibility.</body>
+                <topics>
+                    <topic>education</topic>
+                    <topic>health</topic>
+                </topics>
+            </post>
+        </posts>
+        <followers>
+            <follower><id>11</id></follower>
+        </followers>
+    </user>
+</users>

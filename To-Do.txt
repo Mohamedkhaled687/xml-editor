@@ -6,4 +6,4 @@
 * increase font sizes to fill graph sidebar.
 * allow browse mode to accept .txt format (the compressed version that is to be passed on to decompression).
 * prevent operations on compressed version in browse or manual mode.
-*
+* make decompress function work !!
