@@ -186,8 +186,8 @@ class GraphVisualizationWindow(QWidget):
         control_panel = self._create_control_panel()
 
         # Add to main layout
-        main_layout.addWidget(graph_container, 3)
-        main_layout.addWidget(control_panel, 1)
+        main_layout.addWidget(graph_container, 5)
+        main_layout.addWidget(control_panel, 2)
 
     def _create_title_bar(self):
         """Create the title bar with graph information."""
@@ -209,7 +209,7 @@ class GraphVisualizationWindow(QWidget):
         title_label = QLabel("🔗 SocialX Graph Visualization")
         title_label.setStyleSheet("""
             background-color: transparent;
-            color: white;
+            color: rgba(200, 220, 240, 255);
             font-size: 18px;
             font-weight: bold;
         """)
@@ -222,7 +222,7 @@ class GraphVisualizationWindow(QWidget):
         self.info_label.setStyleSheet("""
             background-color: transparent;  
             color: rgba(200, 220, 240, 255);
-            font-size: 13px;
+            font-size: 18px;
             font-weight: bold;
         """)
         
@@ -263,7 +263,7 @@ class GraphVisualizationWindow(QWidget):
             QGroupBox {
                 color: rgba(150, 200, 255, 255);
                 font-weight: bold;
-                font-size: 13px;
+                font-size: 20px;
                 border: 1px solid rgba(80, 120, 160, 150);
                 border-radius: 5px;
                 margin-top: 10px;
@@ -276,29 +276,37 @@ class GraphVisualizationWindow(QWidget):
             }
             QLabel {
                 color: rgba(200, 220, 240, 255);
-                font-size: 12px;
+                font-size: 18px;
+                font-weight: bold;
             }
             QComboBox, QSpinBox {
                 background-color: rgba(40, 60, 80, 180);
                 border: 1px solid rgba(80, 120, 160, 120);
                 border-radius: 4px;
                 color: white;
-                padding: 5px;
+                padding-left: 5px;
+                padding-right: 25px;  
                 min-height: 25px;
-            }
-            QComboBox::drop-down {
-                border: none;
+            QComboBox::drop-down{
+                border: none;   
+                background: qlineargradient(
+                    x1:0, y1:1, x2:0, y2:0,
+                    stop:0 rgba(60, 80, 100, 200),
+                    stop:1 rgba(120, 160, 200, 220)
+                );
+                subcontrol-origin: padding;
+                subcontrol-position: top right;
+                width: 20px;
+                border-left: 1px solid rgba(80, 120, 160, 120);
             }
             QComboBox::down-arrow {
-                image: none;
-                border-left: 5px solid transparent;
-                border-right: 5px solid transparent;
-                border-top: 5px solid white;
-                margin-right: 5px;
+                width: 10px;
+                height: 2px;
+                background-color: white;  
             }
             QComboBox QAbstractItemView {
                 background-color: rgba(40, 60, 80, 200);
-                color: white;
+                color: rgba(200, 220, 240, 255);
                 selection-background-color: rgba(40, 100, 180, 200);
                 border: 1px solid rgba(80, 120, 160, 120);
             }
@@ -307,7 +315,7 @@ class GraphVisualizationWindow(QWidget):
                 border: 1px solid rgba(80, 150, 220, 180);
                 border-radius: 5px;
                 color: white;
-                font-size: 12px;
+                font-size: 16px;
                 font-weight: bold;
                 padding: 8px;
                 min-height: 30px;
@@ -320,7 +328,8 @@ class GraphVisualizationWindow(QWidget):
             }
             QCheckBox {
                 color: rgba(200, 220, 240, 255);
-                font-size: 12px;
+                font-size: 16px;
+                font-weight: bold;
             }
             QCheckBox::indicator {
                 width: 18px;
@@ -346,6 +355,7 @@ class GraphVisualizationWindow(QWidget):
                 color: rgba(150, 200, 255, 255);
                 padding: 8px 15px;
                 margin-right: 2px;
+                font-size: 16px;
                 font-weight: bold;
             }
             QTabBar::tab:selected {
@@ -442,6 +452,12 @@ class GraphVisualizationWindow(QWidget):
             "Kamada-Kawai Layout",
             "Random Layout"
         ])
+        self.layout_combo.setStyleSheet(
+            """
+            font-size: 14px;
+            font-weight: bold;
+            """
+        )
         self.layout_combo.setCurrentIndex(1)  # Default to Circular Layout
         self.layout_combo.currentIndexChanged.connect(self.on_layout_changed)
         layout.addWidget(self.layout_combo)
@@ -488,6 +504,12 @@ class GraphVisualizationWindow(QWidget):
             "Uniform (Steel Blue)",
             "Random Colors"
         ])
+        self.color_combo.setStyleSheet(
+            """
+            font-size: 14px;
+            font-weight: bold;
+            """
+        )
         self.color_combo.currentIndexChanged.connect(lambda: self.draw_graph())
         layout.addWidget(self.color_combo)
         
@@ -502,7 +524,7 @@ class GraphVisualizationWindow(QWidget):
         # Create label to hold statistics
         self.stats_label = QLabel()
         self.stats_label.setWordWrap(True)
-        self.stats_label.setStyleSheet("font-size: 11px; line-height: 1.5;")
+        self.stats_label.setStyleSheet("font-size: 16px; line-height: 2;")
         self.stats_layout.addWidget(self.stats_label)
         
         return group
@@ -514,21 +536,21 @@ class GraphVisualizationWindow(QWidget):
         
         # Build statistics text from metrics
         stats_text = f"""
-<b>Network Metrics:</b><br>
-• Nodes: {self.metrics.get('num_nodes', 0)}<br>
-• Edges: {self.metrics.get('num_edges', 0)}<br>
-• Density: {self.metrics.get('density', 0):.3f}<br>
-• Avg Followers: {self.metrics.get('avg_in_degree', 0):.1f}<br>
-• Avg Following: {self.metrics.get('avg_out_degree', 0):.1f}<br>
+<b><b>Network Metrics:</b></b><br>
+/t• <b>Nodes</b>: {self.metrics.get('num_nodes', 0)}<br>
+\t• <b>Edges</b>: {self.metrics.get('num_edges', 0)}<br>
+\t• <b>Density</b>: {self.metrics.get('density', 0):.3f}<br>
+\t• <b>Avg Followers</b>: {self.metrics.get('avg_in_degree', 0):.1f}<br>
+\t• <b>Avg Following</b>: {self.metrics.get('avg_out_degree', 0):.1f}<br>
         """
         
         if 'most_influential' in self.metrics:
             inf = self.metrics['most_influential']
-            stats_text += f"<br><b>Most Influential:</b><br>• {inf['name']}<br>  ({inf['followers']} followers)<br>"
+            stats_text += f"<br><b>Most Influential:</b><br> \t•{inf['name']} has  {inf['followers']} followers.<br>"
         
         if 'most_active' in self.metrics:
             act = self.metrics['most_active']
-            stats_text += f"<br><b>Most Active:</b><br>• {act['name']}<br>  (follows {act['following']})<br>"
+            stats_text += f"<br><b>Most Active:</b><br> \t•{act['name']} follows {act['following']} users.<br>"
         
         self.stats_label.setText(stats_text)
     
@@ -541,7 +563,7 @@ class GraphVisualizationWindow(QWidget):
         # Create label to hold most active user info
         self.active_label = QLabel()
         self.active_label.setWordWrap(True)
-        self.active_label.setStyleSheet("font-size: 11px; line-height: 1.5;")
+        self.active_label.setStyleSheet("font-size: 16px; line-height: 1.5;")
         layout.addWidget(self.active_label)
         
         return group
@@ -570,7 +592,7 @@ class GraphVisualizationWindow(QWidget):
         
         # Instructions
         instructions = QLabel("Select users to find mutual followers:")
-        instructions.setStyleSheet("font-size: 10px; color: rgba(150, 180, 220, 255);")
+        instructions.setStyleSheet("font-size: 14px; color: rgba(150, 180, 220, 255);")
         layout.addWidget(instructions)
         
         # User selection combo boxes (show 2 users)
@@ -578,16 +600,32 @@ class GraphVisualizationWindow(QWidget):
         
         # User 1
         user1_layout = QHBoxLayout()
-        user1_layout.addWidget(QLabel("User 1:"))
+        user1 = QLabel("User 1:")
+        user1.setStyleSheet("font-size: 18px; line-height: 2;")
+        user1_layout.addWidget(user1)
         self.mutual_user1_combo = QComboBox()
+        self.mutual_user1_combo.setStyleSheet(
+            """
+            font-size: 14px;
+            font-weight: bold;
+            """
+        )
         self.mutual_user1_combo.addItems(users_list)
         user1_layout.addWidget(self.mutual_user1_combo)
         layout.addLayout(user1_layout)
         
         # User 2
         user2_layout = QHBoxLayout()
-        user2_layout.addWidget(QLabel("User 2:"))
+        user2 = QLabel("User 2:")
+        user2.setStyleSheet("font-size: 18px; line-height: 2;")
+        user2_layout.addWidget(user2)
         self.mutual_user2_combo = QComboBox()
+        self.mutual_user2_combo.setStyleSheet(
+            """
+            font-size: 14px;
+            font-weight: bold;
+            """
+        )
         self.mutual_user2_combo.addItems(users_list)
         if len(users_list) > 1:
             self.mutual_user2_combo.setCurrentIndex(1)
@@ -602,7 +640,7 @@ class GraphVisualizationWindow(QWidget):
         # Results display
         self.mutual_label = QLabel("No results yet")
         self.mutual_label.setWordWrap(True)
-        self.mutual_label.setStyleSheet("font-size: 10px; line-height: 1.4;")
+        self.mutual_label.setStyleSheet("font-size: 16px; line-height: 2;")
         layout.addWidget(self.mutual_label)
         
         return group
