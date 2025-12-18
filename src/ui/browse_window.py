@@ -79,7 +79,7 @@ class BrowseWindow(BaseXMLWindow):
             self,
             "Select XML File",
             "",
-            "XML Files (*.xml);;All Files (*)"
+            "Text Files(*.txt);; XML Files (*.xml);;All Files (*)"
         )
 
         if not file_path:
