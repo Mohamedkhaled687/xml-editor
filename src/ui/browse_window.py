@@ -87,16 +87,16 @@ class BrowseWindow(BaseXMLWindow):
 
         # Validate extension
         _, ext = os.path.splitext(file_path)
-        if ext.lower() != ".xml" or ext.lower() != ".txt":
+
+        if self.file_path_box and (ext.lower() == ".xml" or ext.lower() == ".txt"):
+            self.file_path_box.setText(file_path)
+        else:
             QMessageBox.warning(
                 self,
                 "Invalid File",
-                "Please select a valid XML (.xml) file.\n The selected " + ext.lower() + " extension is un acceptable"
+                "Please select a valid XML (.xml) file or Text (.txt) file.\n The selected " + ext.lower() + " extension is unacceptable"
             )
             return
-
-        if self.file_path_box:
-            self.file_path_box.setText(file_path)
 
     def upload(self) -> None:
         if not self.file_path_box.text():
