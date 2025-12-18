@@ -5,7 +5,7 @@ Supports multiple layout algorithms, interactive features, and image export
 
 from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QLabel,
                                QPushButton, QComboBox, QSpinBox, QCheckBox,
-                               QGroupBox, QFileDialog, QMessageBox, QSlider, QTabWidget)
+                               QGroupBox, QFileDialog, QMessageBox, QTabWidget, QSizePolicy)
 import matplotlib
 import networkx as nx
 import matplotlib.pyplot as plt
@@ -279,7 +279,17 @@ class GraphVisualizationWindow(QWidget):
                 font-size: 18px;
                 font-weight: bold;
             }
-            QComboBox, QSpinBox {
+            QSpinBox {
+                background-color: rgba(40, 60, 80, 180);
+                border: 1px solid rgba(80, 120, 160, 120);
+                border-radius: 4px;
+                color: white;
+                padding-left: 6px;
+                padding-right: 26px;
+                font-size: 16px;
+                font-weight: bold;
+            }  
+            QComboBox{
                 background-color: rgba(40, 60, 80, 180);
                 border: 1px solid rgba(80, 120, 160, 120);
                 border-radius: 4px;
@@ -287,6 +297,9 @@ class GraphVisualizationWindow(QWidget):
                 padding-left: 5px;
                 padding-right: 25px;  
                 min-height: 25px;
+                font-size: 16px;
+                font-weight: bold;
+            }
             QComboBox::drop-down{
                 border: none;   
                 background: qlineargradient(
@@ -485,14 +498,90 @@ class GraphVisualizationWindow(QWidget):
         # Node base size
         size_label = QLabel("Base Node Size:")
         layout.addWidget(size_label)
-        
+
+        spin_container = QWidget()
+        spin_layout = QHBoxLayout(spin_container)
+        spin_layout.setContentsMargins(0, 0, 0, 0)
+        spin_layout.setSpacing(3)
+
         self.size_spinbox = QSpinBox()
         self.size_spinbox.setRange(100, 2000)
-        self.size_spinbox.setValue(500)
         self.size_spinbox.setSingleStep(100)
-        self.size_spinbox.valueChanged.connect(lambda: self.draw_graph())
-        layout.addWidget(self.size_spinbox)
-        
+        self.size_spinbox.setValue(500)
+        self.size_spinbox.setFixedSize(300, 30)
+        self.size_spinbox.setButtonSymbols(QSpinBox.NoButtons)
+        self.size_spinbox.valueChanged.connect(self.draw_graph)
+
+        btn_up = QPushButton("▲")
+        btn_up.setStyleSheet(
+            """
+            QPushButton {
+                background-color: rgba(60, 80, 100, 200);
+                border: 1px solid rgba(80, 120, 160, 120);
+                border-radius: 4px;
+                padding: 0px;
+                color: rgba(200, 220, 240, 255);
+                font-size: 12px;
+            }
+            
+            QPushButton:hover {
+                background-color: rgba(80, 100, 120, 220);
+            }
+            
+            QPushButton:pressed {
+                background-color: rgba(40, 100, 180, 255);
+            }
+            """
+        )
+        btn_down = QPushButton("▼")
+        btn_down.setStyleSheet(
+            """
+            QPushButton {
+                background-color: rgba(60, 80, 100, 200);
+                border: 1px solid rgba(80, 120, 160, 120);
+                border-radius: 4px;
+                padding: 0px;
+                color: rgba(200, 220, 240, 255);
+                font-size: 12px;
+            }
+
+            QPushButton:hover {
+                background-color: rgba(80, 100, 120, 220);
+            }
+
+            QPushButton:pressed {
+                background-color: rgba(40, 100, 180, 255);
+            }
+            """
+        )
+
+        btn_up.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        btn_down.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+
+        btn_up.clicked.connect(
+            lambda: self.size_spinbox.setValue(
+                self.size_spinbox.value() + self.size_spinbox.singleStep()
+            )
+        )
+
+        btn_down.clicked.connect(
+            lambda: self.size_spinbox.setValue(
+                self.size_spinbox.value() - self.size_spinbox.singleStep()
+            )
+        )
+
+        btn_layout = QHBoxLayout()
+        btn_layout.setContentsMargins(0, 0, 0, 0)
+        btn_layout.setSpacing(2)
+
+        btn_layout.addWidget(btn_up)
+        btn_layout.addWidget(btn_down)
+
+        spin_layout.addWidget(self.size_spinbox)
+        spin_layout.addLayout(btn_layout)
+
+        layout.addWidget(spin_container)
+
         # Color scheme
         color_label = QLabel("Color Scheme:")
         layout.addWidget(color_label)
