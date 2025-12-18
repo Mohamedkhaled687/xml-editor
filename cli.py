@@ -1,5 +1,6 @@
 import argparse
 import json
+import re
 import sys
 import os
 
@@ -48,6 +49,10 @@ active_arg.add_argument('-i',"--input",required=True,type=str,help='Path to the 
 
 influencer_arg = commands.add_parser('most_influencer', help= 'returns the most influential person in a given input xml file')
 influencer_arg.add_argument('-i',"--input",required=True,type=str,help='Path to the input XML file')
+
+mutual_arg = commands.add_parser('mutual', help= 'returns mutual followers in a given social network (defined by a xml file)')
+mutual_arg.add_argument('-i',"--input",required=True,type=str,help='Path to the input XML file')
+mutual_arg.add_argument('-ids',"--ids",required=True,type=str,help='Path to the output XML file')
 
 
 if len(sys.argv) == 1:
@@ -140,4 +145,18 @@ match args.command:
             print(
                 f"the person that has the most influence is: {metrics['most_influential']['name']} \nwith an id of: {metrics['most_influential']['id']}")
 
-    case 'draw':
+    case 'mutual':
+        ack = file_io.read_file(args.input)
+        if ack[0]:
+            graph.set_xml_data(ack[1])
+            graph.build_graph()
+            result = re.findall(r'\d+', args.ids)
+            mutual = graph.get_mutual_followers_between_many(result)
+            out = ""
+            for i in range(len(mutual)):
+                out += f"{i+1}.\n       name: {mutual[i]['name']} with an id of {mutual[i]['user_id']} \n"
+            if out == "":
+                print("we didn't find any mutual friend")
+            else:
+                print(f"we found some mutual friends you might wanna check out:\n   {out}")
+

@@ -711,7 +711,7 @@ class XMLController:
 
                 if found:
                     clean_body = body_text.strip().replace('\n', ' ')
-                    result.append(f"in user: {user_name}'s. found relevant post: {clean_body}")
+                    result.append(f"in user: {user_name}'s. found relevant post: {clean_body}\n\n")
 
         if len(result) == 0:
             result.append("found no relevant posts in any user's posts")
