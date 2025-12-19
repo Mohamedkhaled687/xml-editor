@@ -13,7 +13,7 @@ class GraphController:
     """Controller for graph-related operations."""
     
     def __init__(self, xml_data = None) -> None:
-        self.xml_data = xml_data  # Can be ET.Element or string
+        self.xml_data = xml_data
         self.G: Optional[nx.DiGraph] = None
         self.metrics: Dict = {}
         self.analyzer: Optional[NetworkAnalyzer] = None

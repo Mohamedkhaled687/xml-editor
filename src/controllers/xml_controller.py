@@ -13,7 +13,7 @@ Key Features:
 
 
 """
-
+from ..utils import file_io,XMLTree
 import textwrap
 import re
 from typing import List, Tuple, Optional, Any, Dict
@@ -534,7 +534,7 @@ class XMLController:
     # SECTION 6: Compression and Decompression
     # ===================================================================
 
-    def compress_to_string(self) -> str:
+    def compress_to_string(self, output_path: Optional[str] = None) -> str:
         if not self.xml_string:
             return ""
 
@@ -595,10 +595,28 @@ class XMLController:
         for t in tokens:
             out.extend(ByteUtils.pack_u16(t))
 
-        return bytes([b if b < 256 else 63 for b in out]).decode("latin-1")
+        output = bytes([b if b < 256 else 63 for b in out]).decode("latin-1")
+        with open(output_path,mode = 'w') as f:
+            f.write(output)
 
-    def decompress_from_string(self, compressed_string: Optional[str] = None) -> str:
-        data = bytearray(compressed_string.encode("latin-1"))
+        return output
+
+    def decompress_from_string(self,
+                               output_path: Optional[str] = None,
+                               input_path: Optional[str] = None,
+                               compressed_string: Optional[str] = None
+                               ) -> str:
+
+        if input_path is not None:
+            with open(input_path, 'r') as f:
+                data = f.read()
+                data = bytearray(data.encode("latin-1"))
+        elif compressed_string is not None and input_path is None:
+            data = bytearray(compressed_string.encode("latin-1"))
+        else:
+            raise ValueError("You must provide either an input_path or a compressed_string.")
+
+
         offset = 0
         try:
             # Check for at least 4 bytes for merge_count
@@ -644,6 +662,58 @@ class XMLController:
                         new_tokens.append(t)
                 tokens = new_tokens
 
-            return ''.join(chr(t) for t in tokens)
+            output = ''.join(chr(t) for t in tokens)
+            if output_path is not None:
+                file_io.write_file(output_path,data= output)
+
+            return output
         except Exception as e:
             raise ValueError(f"{e}")
+
+    def search_in_posts(self,
+                        word: Optional[str] = None,
+                        topic: Optional[str] = None
+                        ) -> Optional[List[str]]:
+        """
+        Searching ability in the post for a topic or a word.
+        """
+        if (word is None and topic is None) or (word is not None and topic is not None):
+            return None
+        if hasattr(self, 'xml_string') and self.xml_data is None:
+            self.xml_data = XMLTree.fromstring(self.xml_string)
+
+        if not self.xml_data:
+            return None
+
+        result = []
+        users = self.xml_data.findall('.//user')
+
+        for user in users:
+            name_node = user.find('name')
+            user_name = name_node.text.strip() if (name_node and name_node.text) else "Unknown User"
+
+            posts = user.findall('.//post')
+            for post_elem in posts:
+                found = False
+                body_node = post_elem.find('body')
+                body_text = body_node.text if (body_node and body_node.text) else ""
+                if word is not None:
+                    if word.lower() in body_text.lower():
+                        found = True
+
+                elif topic is not None:
+
+                    topic_elements = post_elem.findall('.//topic')
+                    for topic_elem in topic_elements:
+                        if topic_elem.text and topic.lower() in topic_elem.text.lower():
+                            found = True
+                            break
+
+                if found:
+                    clean_body = body_text.strip().replace('\n', ' ')
+                    result.append(f"in user: {user_name}'s. found relevant post: {clean_body}\n\n")
+
+        if len(result) == 0:
+            result.append("found no relevant posts in any user's posts")
+
+        return result

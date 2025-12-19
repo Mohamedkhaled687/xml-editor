@@ -642,7 +642,7 @@ class BaseXMLWindow(QMainWindow):
 
     def search_in_post(self, keyword: str, Type: str) -> Optional[List[str]]:
         """Placeholder logic for searching within topics."""
-        # if Type =='word':
-        #     return self.data_controller.search_in_posts(word = keyword)
-        # else:
-        #     return self.data_controller.search_in_posts(topic = keyword)
+        if Type =='word':
+            return self.xml_controller.search_in_posts(word = keyword)
+        else:
+            return self.xml_controller.search_in_posts(topic = keyword)
