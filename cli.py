@@ -395,11 +395,30 @@ if __name__ == "__main__":
             if isinstance(action, argparse._SubParsersAction):
                 action.required = True
                 break
-        args = parser.parse_args()
-        if args.command is None:
-            parser.print_help()
-            sys.exit(1)
         
-        editor = XMLController()
-        graph = GraphController()
-        execute_command(args, editor, graph)
+        try:
+            args = parser.parse_args()
+            
+            if args.command is None:
+                parser.print_help()
+                sys.exit(1)
+            
+            editor = XMLController()
+            graph = GraphController()
+            execute_command(args, editor, graph)
+            
+        except SystemExit as e:
+            # argparse may raise SystemExit even with exit_on_error=False in some cases
+            # Re-raise to preserve exit codes (0 for help, 2 for errors)
+            raise
+        except (argparse.ArgumentError, argparse.ArgumentTypeError) as e:
+            # Handle argument errors (e.g., invalid choice, missing required args, type errors)
+            print(f"{Fore.RED}Error: {str(e)}{Style.RESET_ALL}")
+            parser.print_help()
+            sys.exit(2)
+        except Exception as e:
+            # Handle any other parsing errors
+            print(f"{Fore.RED}Error parsing arguments: {str(e)}{Style.RESET_ALL}")
+            print(f"{Fore.YELLOW}Use 'python cli.py <command> --help' for command-specific help.{Style.RESET_ALL}")
+            parser.print_help()
+            sys.exit(2)
