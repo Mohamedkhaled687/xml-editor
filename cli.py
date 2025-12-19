@@ -1,3 +1,5 @@
+"""Command line interface of Social network program"""
+
 import argparse
 import json
 import re
@@ -6,10 +8,9 @@ import os
 import networkx as nx
 import matplotlib.pyplot as plt
 
-# Add project root to path
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from src.controllers import XMLController, GraphController
-from src.utils import file_io,network_analyzer
+from src.utils import file_io
 
 parser = argparse.ArgumentParser(description="use XML editor in CLI mode")
 commands =parser.add_subparsers(dest='command', help='Available functionalities',required=True)
