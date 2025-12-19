@@ -1,3 +1,2 @@
 * prevent operations on compressed version in browse or manual mode.
-* Add an interactive command line loop that allow the user for multiple commands
 * make decompress function work !!
