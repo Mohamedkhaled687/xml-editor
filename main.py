@@ -22,34 +22,9 @@ def launch_gui():
     manager.run()
 
 def launch_cli():
-    """Launch the command-line interface with usage instructions."""
-    print(f"\n{Fore.CYAN}{'='*70}{Style.RESET_ALL}")
-    print(f"{Fore.YELLOW}Command-Line Interface (CLI) Mode{Style.RESET_ALL}")
-    print(f"{Fore.CYAN}{'='*70}{Style.RESET_ALL}\n")
-    
-    print(f"{Fore.GREEN}Available Commands:{Style.RESET_ALL}\n")
-    
-    commands_info = [
-        ("verify", "Verify the structure of the XML file", 
-         "python cli.py verify -i input.xml [-o output.xml] [-f]"),
-        ("format", "Format the XML file to standard format",
-         "python cli.py format -i input.xml [-o output.xml]"),
-        ("json", "Transform XML file to JSON format",
-         "python cli.py json -i input.xml [-o output.json]"),
-        ("mini", "Strip spaces in XML file (minify)",
-         "python cli.py mini -i input.xml [-o output.xml]"),
-        ("compress", "Compress XML file",
-         "python cli.py compress -i input.xml -o output.compressed"),
-        ("decompress", "Decompress XML file",
-         "python cli.py decompress -i input.compressed -o output.xml"),
-    ]
-    
-    for cmd, desc, example in commands_info:
-        print(f"  {Fore.GREEN}{cmd:<12}{Style.RESET_ALL} - {desc}")
-        print(f"    {Fore.WHITE}Example: {example}{Style.RESET_ALL}\n")
-    
-    print(f"{Fore.CYAN}{'='*70}{Style.RESET_ALL}")
-    print(f"{Fore.YELLOW}Note:{Style.RESET_ALL} Use 'python cli.py <command> --help' for detailed help on each command.\n")
+    """Launch the command-line interface in REPL mode."""
+    import cli
+    cli.run_repl()
 
 def print_help():
     help_text = f"""
