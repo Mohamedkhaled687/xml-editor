@@ -8,8 +8,9 @@ from .base_xml_window import BaseXMLWindow
 class ManualWindow(BaseXMLWindow):
     """Manual mode window for loading XML from manual text input."""
 
-    def __init__(self) -> None:
+    def __init__(self, main_window) -> None:
         self.input_text_box: QTextEdit = QTextEdit()
+        self.main_window = main_window
 
         super().__init__(
             window_title="🌐 SocialX XML Parser - Manual Mode",
@@ -76,6 +77,19 @@ class ManualWindow(BaseXMLWindow):
             return
 
         try:
+            if "<" in self.input_text and ">" in self.input_text:
+                # Update ITSELF
+                self.is_xml = True
+                self.is_compressed = False
+                # Update Parent if it exists
+                if self.main_window:
+                    self.main_window.is_xml = True
+            else:
+                self.is_xml = False
+                self.is_compressed = True
+                if self.main_window:
+                    self.main_window.is_compressed = True
+
             self.xml_controller.set_xml_string(self.input_text)
             self.graph_controller.set_xml_data(self.input_text)
         except Exception as e:

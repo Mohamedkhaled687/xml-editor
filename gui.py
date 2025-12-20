@@ -40,7 +40,7 @@ class AppManager:
         """Show browse mode window."""
 
         if self.browse_window is None:
-            self.browse_window = BrowseWindow()
+            self.browse_window = BrowseWindow(self)
             self.browse_window.back_clicked.connect(self.show_landing)
 
         self.landing_window.hide()
@@ -50,7 +50,7 @@ class AppManager:
         """Show manual mode window."""
 
         if self.manual_window is None:
-            self.manual_window = ManualWindow()
+            self.manual_window = ManualWindow(self)
             self.manual_window.back_clicked.connect(self.show_landing)
 
         self.landing_window.hide()

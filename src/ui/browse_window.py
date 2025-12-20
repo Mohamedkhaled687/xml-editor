@@ -14,8 +14,9 @@ from ..utils import file_io
 class BrowseWindow(BaseXMLWindow):
     """Browse mode window for loading XML from files."""
 
-    def __init__(self) -> None:
+    def __init__(self, main_window) -> None:
         self.file_path_box: QLineEdit = QLineEdit()
+        self.main_window = main_window
 
         super().__init__(
             window_title="🌐 SocialX XML Parser - Browse Mode",
@@ -109,6 +110,19 @@ class BrowseWindow(BaseXMLWindow):
             return
 
         try:
+            if "<" in result and ">" in result:
+                # Update ITSELF
+                self.is_xml = True
+                self.is_compressed = False
+                # Update Parent if it exists
+                if self.main_window:
+                    self.main_window.is_xml = True
+            else:
+                self.is_xml = False
+                self.is_compressed = True
+                if self.main_window:
+                    self.main_window.is_compressed = True
+
             self.xml_controller.set_xml_string(result)
             self.graph_controller.set_xml_data(result)
         except Exception as e:
