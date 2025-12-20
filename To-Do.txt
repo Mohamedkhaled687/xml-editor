@@ -1,1 +1,1 @@
-* prevent operations on compressed version in browse or manual mode.
+Project is DONE!
