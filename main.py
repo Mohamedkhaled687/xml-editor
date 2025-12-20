@@ -55,11 +55,11 @@ def app():
             if choice == '1':
                 print(f"{Fore.BLUE}Launching GUI...{Style.RESET_ALL}")
                 launch_gui()
-                break  # Exit after launching GUI
+                print(f"{Fore.GREEN}Returned to main menu.{Style.RESET_ALL}\n")
             elif choice == '2':
                 print(f"{Fore.BLUE}Launching CLI...{Style.RESET_ALL}")
                 launch_cli()
-                break  # Exit after launching CLI
+                print(f"{Fore.GREEN}Returned to main menu.{Style.RESET_ALL}\n")
             elif choice == '3':
                 print_help()
             elif choice == '4':

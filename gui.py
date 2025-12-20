@@ -14,7 +14,10 @@ class AppManager:
     """Manages the application flow between windows."""
 
     def __init__(self):
-        self.app = QApplication(sys.argv)
+        # Reuse existing QApplication if one exists (Qt only allows one per process)
+        self.app = QApplication.instance()
+        if self.app is None:
+            self.app = QApplication(sys.argv)
 
         # Set application font
         font = QFont("Segoe UI", 10)
@@ -63,10 +66,11 @@ class AppManager:
 
     def run(self):
         """Start the Qt event loop."""
-        sys.exit(self.app.exec())
+        return self.app.exec()
 
 
 if __name__ == '__main__':
     manager = AppManager()
-    manager.run()
+    exit_code = manager.run()
+    sys.exit(exit_code)
 
