@@ -116,12 +116,12 @@ class BrowseWindow(BaseXMLWindow):
                 self.is_xml = True
                 self.is_compressed = False
                 # Update Parent if it exists
-                if self.main_window:
+                if self.main_window and hasattr(self.main_window, "is_xml"):
                     self.main_window.is_xml = True
             else:
                 self.is_xml = False
                 self.is_compressed = True
-                if self.main_window:
+                if self.main_window and hasattr(self.main_window, "is_compressed"):
                     self.main_window.is_compressed = True
 
             self.xml_controller.set_xml_string(result)
