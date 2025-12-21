@@ -393,10 +393,9 @@ class BaseXMLWindow(QMainWindow):
 
         file_path, _ = QFileDialog.getSaveFileName(
             self,
-            "Save Result",
+            "Select XML File",
             "",
-            "",
-            "Text files (*.txt);;XML files (*.xml)"
+            "XML files (*.xml);;Text files (*.txt);;JSON files (*.json)"
         )
 
         if not file_path:

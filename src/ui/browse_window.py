@@ -80,8 +80,7 @@ class BrowseWindow(BaseXMLWindow):
             self,
             "Select XML File",
             "",
-            "",
-            "Text files (*.txt);;XML files (*.xml)"
+            "XML files (*.xml);;Text files (*.txt)"
         )
 
         if not file_path:
@@ -115,7 +114,7 @@ class BrowseWindow(BaseXMLWindow):
                 # Update ITSELF
                 self.is_xml = True
                 self.is_compressed = False
-                # Update Parent if it exists
+                # Update Parent if it exists and supports these attributes
                 if self.main_window and hasattr(self.main_window, "is_xml"):
                     self.main_window.is_xml = True
             else:
