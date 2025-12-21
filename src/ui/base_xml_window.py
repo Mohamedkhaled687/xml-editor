@@ -42,9 +42,14 @@ class BaseXMLWindow(QMainWindow):
 
         self.xml_buttons = []
         self.compressed_buttons = []
-        self.is_xml: bool = False
-        self.is_compressed: bool = False
 
+        # Initialize backing attributes before using the properties
+        self._is_xml: bool = False
+        self._is_compressed: bool = False
+
+        # Initialize properties (may trigger any setter side effects)
+        self.is_xml = False
+        self.is_compressed = False
         self.window_title: str = window_title
         self.mode_name: str = mode_name
 
