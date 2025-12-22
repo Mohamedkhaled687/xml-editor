@@ -507,7 +507,7 @@ class GraphVisualizationWindow(QWidget):
 
         self.labels_mode_combo = QComboBox()
         self.labels_mode_combo.addItems(["Names", "IDs"])
-        self.labels_mode_combo.setCurrentIndex(1)  # Default to Names
+        self.labels_mode_combo.setCurrentIndex(0)  # Default to Names
         self.labels_mode_combo.setStyleSheet(
             """
             font-size: 14px;
