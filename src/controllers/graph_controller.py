@@ -102,21 +102,31 @@ class GraphController:
         
         # Most influential (most followers)
         if in_degrees:
-            most_influential_id = max(in_degrees, key=in_degrees.get)
-            metrics['most_influential'] = {
-                'id': most_influential_id,
-                'name': nodes.get(most_influential_id, 'Unknown'),
-                'followers': in_degrees[most_influential_id]
-            }
+            max_followers = max(in_degrees.values())
+            # Find all users with max_followers
+            top_influencers = [uid for uid, count in in_degrees.items() if count == max_followers]
+            
+            metrics['most_influential'] = []
+            for uid in top_influencers:
+                metrics['most_influential'].append({
+                    'id': uid,
+                    'name': nodes.get(uid, 'Unknown'),
+                    'followers': in_degrees[uid]
+                })
         
         # Most active (follows most people)
         if out_degrees:
-            most_active_id = max(out_degrees, key=out_degrees.get)
-            metrics['most_active'] = {
-                'id': most_active_id,
-                'name': nodes.get(most_active_id, 'Unknown'),
-                'following': out_degrees[most_active_id]
-            }
+            max_following = max(out_degrees.values())
+            # Find all users with max_following
+            top_active = [uid for uid, count in out_degrees.items() if count == max_following]
+            
+            metrics['most_active'] = []
+            for uid in top_active:
+                metrics['most_active'].append({
+                    'id': uid,
+                    'name': nodes.get(uid, 'Unknown'),
+                    'following': out_degrees[uid]
+                })
         
         # Store degree dictionaries for visualization
         metrics['in_degrees'] = in_degrees

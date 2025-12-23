@@ -5,7 +5,8 @@ Supports multiple layout algorithms, interactive features, and image export
 
 from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QLabel,
                                QPushButton, QComboBox, QSpinBox, QCheckBox,
-                               QGroupBox, QFileDialog, QMessageBox, QTabWidget, QSizePolicy)
+                               QGroupBox, QFileDialog, QMessageBox, QTabWidget, QSizePolicy,
+                               QListWidget, QListWidgetItem)
 import matplotlib
 import networkx as nx
 import matplotlib.pyplot as plt
@@ -44,6 +45,8 @@ class GraphVisualizationWindow(QWidget):
         # Track selected users for highlighting
         self.selected_users = set()
         self.selected_mutual_followers = set()
+        # Suggested follow targets (highlighted in graph)
+        self.suggested_users = set()
 
         # Graph and metrics should be provided by the controller
         # They are stored separately here for visualization purposes
@@ -80,9 +83,19 @@ class GraphVisualizationWindow(QWidget):
         self._update_info_label()
         # Update statistics display
         self._update_statistics_group()
-        # Update most active user display
-        self._update_most_active_group()
-        self.draw_graph()
+        # Update statistics display
+        self._update_statistics_group()
+        # Refresh selectors and textual labels according to current label mode
+        try:
+            self._refresh_user_selectors()
+        except Exception:
+            pass
+        try:
+            # Ensure instruction texts and groups are updated
+            self.on_label_mode_changed()
+        except Exception:
+            # Fallback to drawing if handler fails
+            self.draw_graph()
 
     def _update_info_label(self) -> None:
         """Update the title bar info label with current metrics."""
@@ -411,13 +424,13 @@ class GraphVisualizationWindow(QWidget):
         analysis_layout = QVBoxLayout(analysis_widget)
         analysis_layout.setSpacing(15)
         
-        # Most Active User
-        active_group = self._create_most_active_group()
-        analysis_layout.addWidget(active_group)
-        
         # Mutual Followers
         mutual_group = self._create_mutual_followers_group()
         analysis_layout.addWidget(mutual_group)
+
+        # Follow Suggestions
+        suggestions_group = self._create_follow_suggestions_group()
+        analysis_layout.addWidget(suggestions_group)
         
         analysis_layout.addStretch()
         tabs.addTab(analysis_widget, "📊 Analysis")
@@ -483,12 +496,22 @@ class GraphVisualizationWindow(QWidget):
         layout = QVBoxLayout(group)
         layout.setSpacing(10)
         
-        # Show labels checkbox
-        self.labels_checkbox = QCheckBox("Show Node Labels")
-        self.labels_checkbox.setChecked(True)
-        self.labels_checkbox.stateChanged.connect(lambda: self.draw_graph())
-        layout.addWidget(self.labels_checkbox)
-        
+        # Label display mode: None / Names / IDs
+        labels_mode_label = QLabel("Modes:")
+        labels_mode_label.setStyleSheet("font-size: 16px; font-weight: bold;")
+        layout.addWidget(labels_mode_label)
+
+        self.labels_mode_combo = QComboBox()
+        self.labels_mode_combo.addItems(["Names", "IDs"])
+        self.labels_mode_combo.setCurrentIndex(1)  # Default to IDs
+        self.labels_mode_combo.setStyleSheet(
+            """
+            font-size: 14px;
+            font-weight: bold;
+            """
+        )
+        self.labels_mode_combo.currentIndexChanged.connect(self.on_label_mode_changed)
+        layout.addWidget(self.labels_mode_combo)
         # Node size by influence
         self.influence_checkbox = QCheckBox("Size by Influence (Followers)")
         self.influence_checkbox.setChecked(True)
@@ -593,6 +616,7 @@ class GraphVisualizationWindow(QWidget):
             "Uniform (Steel Blue)",
             "Random Colors"
         ])
+        self.color_combo.setCurrentIndex(2)  # Default to Uniform
         self.color_combo.setStyleSheet(
             """
             font-size: 14px;
@@ -601,6 +625,24 @@ class GraphVisualizationWindow(QWidget):
         )
         self.color_combo.currentIndexChanged.connect(lambda: self.draw_graph())
         layout.addWidget(self.color_combo)
+        
+        # Font color for labels
+        font_color_label = QLabel("Font Color:")
+        font_color_label.setStyleSheet("font-size: 16px;")
+        layout.addWidget(font_color_label)
+
+        self.font_color_combo = QComboBox()
+        self.font_color_combo.addItems(["White","Black","Red", "Blue", "Green", "Gray"])
+        # Default to White
+        self.font_color_combo.setCurrentIndex(0)
+        self.font_color_combo.setStyleSheet(
+            """
+            font-size: 14px;
+            font-weight: bold;
+            """
+        )
+        self.font_color_combo.currentIndexChanged.connect(lambda: self.draw_graph())
+        layout.addWidget(self.font_color_combo)
         
         return group
     
@@ -626,53 +668,155 @@ class GraphVisualizationWindow(QWidget):
         # Build statistics text from metrics
         stats_text = f"""
 <b><b>Network Metrics:</b></b><br>
-/t• <b>Nodes</b>: {self.metrics.get('num_nodes', 0)}<br>
+\t• <b>Nodes</b>: {self.metrics.get('num_nodes', 0)}<br>
 \t• <b>Edges</b>: {self.metrics.get('num_edges', 0)}<br>
 \t• <b>Density</b>: {self.metrics.get('density', 0):.3f}<br>
 \t• <b>Avg Followers</b>: {self.metrics.get('avg_in_degree', 0):.1f}<br>
 \t• <b>Avg Following</b>: {self.metrics.get('avg_out_degree', 0):.1f}<br>
         """
         
-        if 'most_influential' in self.metrics:
-            inf = self.metrics['most_influential']
-            stats_text += f"<br><b>Most Influential:</b><br> \t•{inf['name']} has  {inf['followers']} followers.<br>"
+        if 'most_influential' in self.metrics and self.metrics['most_influential']:
+            inf_data = self.metrics['most_influential']
+            # Defensive check: if it's a dict (old format), wrap in list
+            if isinstance(inf_data, dict):
+                inf_list = [inf_data]
+            else:
+                inf_list = inf_data
+            
+            if inf_list:
+                followers_count = inf_list[0]['followers']
+                stats_text += f"<br><b>Most Influential ({followers_count} followers):</b><br>"
+                
+                mode = getattr(self, 'labels_mode_combo', None).currentText() if hasattr(self, 'labels_mode_combo') else 'Names'
+                
+                for inf in inf_list:
+                    display_inf = (f"User ID: {inf['id']}" if mode == 'IDs' else inf['name'])
+                    stats_text += f"\t• {display_inf}<br>"
         
-        if 'most_active' in self.metrics:
-            act = self.metrics['most_active']
-            stats_text += f"<br><b>Most Active:</b><br> \t•{act['name']} follows {act['following']} users.<br>"
+        if 'most_active' in self.metrics and self.metrics['most_active']:
+            act_data = self.metrics['most_active']
+            # Defensive check: if it's a dict (old format), wrap in list
+            if isinstance(act_data, dict):
+                act_list = [act_data]
+            else:
+                act_list = act_data
+
+            if act_list:
+                following_count = act_list[0]['following']
+                stats_text += f"<br><b>Most Active ({following_count} following):</b><br>"
+                
+                mode = getattr(self, 'labels_mode_combo', None).currentText() if hasattr(self, 'labels_mode_combo') else 'Names'
+                
+                for act in act_list:
+                    display_act = (f"User ID: {act['id']}" if mode == 'IDs' else act['name'])
+                    stats_text += f"\t• {display_act}<br>"
         
         self.stats_label.setText(stats_text)
-    
-    def _create_most_active_group(self):
-        """Create group to display most active user."""
-        group = QGroupBox("Most Active User")
-        layout = QVBoxLayout(group)
-        layout.setSpacing(8)
+
+    def on_label_mode_changed(self, index=None):
+        """Handle label mode changes: refresh selectors, update label texts, and redraw."""
+        try:
+            self._refresh_user_selectors()
+        except Exception:
+            pass
+        # Update textual displays to match mode
+        try:
+            self._update_statistics_group()
+        except Exception:
+            pass
+        # Clear suggestions when switching label mode to avoid stale entries/highlights
+        try:
+            if hasattr(self, 'suggestions_list'):
+                self.suggestions_list.clear()
+        except Exception:
+            pass
+        # Reset highlight color selection when modes change
+        try:
+            if hasattr(self, 'suggestions_color_combo'):
+                self.suggestions_color_combo.blockSignals(True)
+                self.suggestions_color_combo.setCurrentIndex(-1)
+        finally:
+            if hasattr(self, 'suggestions_color_combo'):
+                self.suggestions_color_combo.blockSignals(False)
+        # also clear suggested_users set used for highlighting
+        try:
+            self.suggested_users = set()
+        except Exception:
+            pass
+
+        if hasattr(self, 'mutual_label') and "No results yet" not in self.mutual_label.text():
+            try:
+                self.find_mutual_followers()
+            except Exception:
+                pass
         
-        # Create label to hold most active user info
-        self.active_label = QLabel()
-        self.active_label.setWordWrap(True)
-        self.active_label.setStyleSheet("font-size: 16px; line-height: 1.5;")
-        layout.addWidget(self.active_label)
-        
-        return group
-    
-    def _update_most_active_group(self):
-        """Update the most active user display."""
-        if not hasattr(self, 'active_label'):
-            return
-        
-        active_text = "<b>Most Active User</b><br>"
-        
-        if 'most_active' in self.metrics:
-            act = self.metrics['most_active']
-            active_text += f"<br>• <b>{act['name']}</b><br>"
-            active_text += f"  Follows: {act['following']} users"
-        else:
-            active_text += "No data available"
-        
-        self.active_label.setText(active_text)
-    
+        self.draw_graph()
+
+    def _refresh_user_selectors(self):
+        """Update combo boxes and selector labels to show IDs or Names depending on label mode."""
+        mode = getattr(self, 'labels_mode_combo', None).currentText() if hasattr(self, 'labels_mode_combo') else 'Names'
+
+        # Build items
+        ids = [str(k) for k in self.nodes.keys()] if self.nodes else []
+        names = [v for v in self.nodes.values()] if self.nodes else []
+        items = ids if mode == 'IDs' else names
+
+        # Update mutual selectors
+        if hasattr(self, 'mutual_user1_combo'):
+            try:
+                self.mutual_user1_combo.blockSignals(True)
+                current_idx = self.mutual_user1_combo.currentIndex()
+                self.mutual_user1_combo.clear()
+                self.mutual_user1_combo.addItems(items)
+                
+                # Restore index if valid, otherwise default
+                if current_idx >= 0 and current_idx < len(items):
+                     self.mutual_user1_combo.setCurrentIndex(current_idx)
+                else:
+                     self.mutual_user1_combo.setCurrentIndex(0 if len(items) > 0 else -1)
+            finally:
+                self.mutual_user1_combo.blockSignals(False)
+
+        if hasattr(self, 'mutual_user2_combo'):
+            try:
+                self.mutual_user2_combo.blockSignals(True)
+                current_idx = self.mutual_user2_combo.currentIndex()
+                self.mutual_user2_combo.clear()
+                self.mutual_user2_combo.addItems(items)
+                
+                # Restore index if valid, otherwise default
+                if current_idx >= 0 and current_idx < len(items):
+                     self.mutual_user2_combo.setCurrentIndex(current_idx)
+                else:
+                     self.mutual_user2_combo.setCurrentIndex(1 if len(items) > 1 else (0 if len(items) == 1 else -1))
+            finally:
+                self.mutual_user2_combo.blockSignals(False)
+
+        # Update suggestions selector (keep placeholder behavior)
+        if hasattr(self, 'suggestions_user_combo'):
+            try:
+                self.suggestions_user_combo.blockSignals(True)
+                self.suggestions_user_combo.clear()
+                self.suggestions_user_combo.addItems(items)
+                self.suggestions_user_combo.setCurrentIndex(-1)
+                ph = 'Select a user ID' if mode == 'IDs' else 'Select a user'
+                self.suggestions_user_combo.setPlaceholderText(ph)
+            finally:
+                self.suggestions_user_combo.blockSignals(False)
+
+        # Update label text widgets
+        if hasattr(self, 'mutual_user1_label'):
+            self.mutual_user1_label.setText('User ID 1:' if mode == 'IDs' else 'User 1:')
+        if hasattr(self, 'mutual_user2_label'):
+            self.mutual_user2_label.setText('User ID 2:' if mode == 'IDs' else 'User 2:')
+        if hasattr(self, 'suggestions_user_label'):
+            self.suggestions_user_label.setText('User ID:' if mode == 'IDs' else 'User:')
+        # Update instruction texts and group titles to reflect 'User ID' when in IDs mode
+        if hasattr(self, 'mutual_instructions'):
+            self.mutual_instructions.setText('Select user IDs to find mutual followers:' if mode == 'IDs' else 'Select users to find mutual followers:')
+        if hasattr(self, 'suggestions_instructions'):
+            self.suggestions_instructions.setText('Select a user id to see follow suggestions:' if mode == 'IDs' else 'Select a user to see follow suggestions:')
+
     def _create_mutual_followers_group(self):
         """Create group for mutual followers analysis."""
         group = QGroupBox("Mutual Followers Analysis")
@@ -680,18 +824,22 @@ class GraphVisualizationWindow(QWidget):
         layout.setSpacing(10)
         
         # Instructions
-        instructions = QLabel("Select users to find mutual followers:")
-        instructions.setStyleSheet("font-size: 14px; color: rgba(150, 180, 220, 255);")
-        layout.addWidget(instructions)
+        self.mutual_instructions = QLabel("Select users to find mutual followers:")
+        self.mutual_instructions.setStyleSheet("font-size: 14px; color: rgba(150, 180, 220, 255);")
+        layout.addWidget(self.mutual_instructions)
         
-        # User selection combo boxes (show 2 users)
-        users_list = sorted(list(self.nodes.values())) if self.nodes else []
+        # User selection combo boxes (show 2 users) - respect label mode
+        mode = getattr(self, 'labels_mode_combo', None).currentText() if hasattr(self, 'labels_mode_combo') else 'Names'
+        if self.nodes:
+            users_list = sorted([str(k) for k in self.nodes.keys()]) if mode == 'IDs' else sorted(list(self.nodes.values()))
+        else:
+            users_list = []
         
         # User 1
         user1_layout = QHBoxLayout()
-        user1 = QLabel("User 1:")
-        user1.setStyleSheet("font-size: 18px; line-height: 2;")
-        user1_layout.addWidget(user1)
+        self.mutual_user1_label = QLabel("User 1:")
+        self.mutual_user1_label.setStyleSheet("font-size: 18px; line-height: 2;")
+        user1_layout.addWidget(self.mutual_user1_label)
         self.mutual_user1_combo = QComboBox()
         self.mutual_user1_combo.setStyleSheet(
             """
@@ -705,9 +853,9 @@ class GraphVisualizationWindow(QWidget):
         
         # User 2
         user2_layout = QHBoxLayout()
-        user2 = QLabel("User 2:")
-        user2.setStyleSheet("font-size: 18px; line-height: 2;")
-        user2_layout.addWidget(user2)
+        self.mutual_user2_label = QLabel("User 2:")
+        self.mutual_user2_label.setStyleSheet("font-size: 18px; line-height: 2;")
+        user2_layout.addWidget(self.mutual_user2_label)
         self.mutual_user2_combo = QComboBox()
         self.mutual_user2_combo.setStyleSheet(
             """
@@ -726,6 +874,13 @@ class GraphVisualizationWindow(QWidget):
         find_mutual_btn.clicked.connect(self.find_mutual_followers)
         layout.addWidget(find_mutual_btn)
         
+        # Highlight toggle
+        self.mutual_highlight_check = QCheckBox("Highlight on Graph")
+        self.mutual_highlight_check.setChecked(True)
+        self.mutual_highlight_check.setStyleSheet("font-size: 14px; color: rgba(150, 180, 220, 255);")
+        self.mutual_highlight_check.stateChanged.connect(self.draw_graph)
+        layout.addWidget(self.mutual_highlight_check)
+        
         # Results display
         self.mutual_label = QLabel("No results yet")
         self.mutual_label.setWordWrap(True)
@@ -733,6 +888,176 @@ class GraphVisualizationWindow(QWidget):
         layout.addWidget(self.mutual_label)
         
         return group
+
+
+    def _create_follow_suggestions_group(self):
+        """Create group that suggests users to follow for a selected user.
+        Suggestion logic: gather users followed by the selected user's followers
+        (i.e., people that many of your followers also follow). Excludes the
+        user themself and users the user already follows.
+        """
+        group = QGroupBox("Follow Suggestions")
+        layout = QVBoxLayout(group)
+        layout.setSpacing(10)
+
+        self.suggestions_instructions = QLabel("Select a user to see follow suggestions:")
+        self.suggestions_instructions.setStyleSheet("font-size: 14px; color: rgba(150, 180, 220, 255);")
+        layout.addWidget(self.suggestions_instructions)
+
+        mode = getattr(self, 'labels_mode_combo', None).currentText() if hasattr(self, 'labels_mode_combo') else 'Names'
+        if self.nodes:
+            users_list = sorted([str(k) for k in self.nodes.keys()]) if mode == 'IDs' else sorted(list(self.nodes.values()))
+        else:
+            users_list = []
+
+        user_layout = QHBoxLayout()
+        self.suggestions_user_label = QLabel("User:")
+        self.suggestions_user_label.setStyleSheet("font-size: 18px; line-height: 2;")
+        user_layout.addWidget(self.suggestions_user_label)
+
+        self.suggestions_user_combo = QComboBox()
+        self.suggestions_user_combo.setStyleSheet(
+            """
+            font-size: 14px;
+            font-weight: bold;
+            """
+        )
+        self.suggestions_user_combo.addItems(users_list)
+        
+        # Proper placeholder
+        self.suggestions_user_combo.setPlaceholderText("Select a user")
+        self.suggestions_user_combo.setCurrentIndex(-1)
+        self.suggestions_user_combo.currentIndexChanged.connect(self.find_follow_suggestions)
+        user_layout.addWidget(self.suggestions_user_combo)
+        layout.addLayout(user_layout)
+        # Highlight color chooser for suggestions
+        color_layout = QHBoxLayout()
+        color_label = QLabel("Highlight color:")
+        color_label.setStyleSheet("font-size: 16px; line-height: 2;")
+        color_layout.addWidget(color_label)
+
+        self.suggestions_color_combo = QComboBox()
+        self.suggestions_color_combo.addItems(["Orange", "Purple", "Cyan"])
+        self.suggestions_color_combo.setPlaceholderText("Select Color")
+        self.suggestions_color_combo.setCurrentIndex(-1)  # Default None
+        self.suggestions_color_combo.setStyleSheet(
+            """
+            font-size: 14px;
+            font-weight: bold;
+            """
+        )
+        self.suggestions_color_combo.currentIndexChanged.connect(self.draw_graph)
+        color_layout.addWidget(self.suggestions_color_combo)
+        layout.addLayout(color_layout)
+
+        # Use a list widget so long suggestion lists are scrollable and names
+        # are shown in full instead of being clipped in a QLabel.
+        self.suggestions_list = QListWidget()
+        self.suggestions_list.setMaximumHeight(180)
+        layout.addWidget(self.suggestions_list)
+
+        return group
+
+
+    def find_follow_suggestions(self):
+        """Compute and display follow suggestions for the selected user.
+
+        Algorithm:
+        - Let U be the selected user.
+        - Let F = followers(U) (predecessors in the DiGraph).
+        - For each f in F, collect S_f = successors(f) (who f follows).
+        - Candidate set C = union of all S_f.
+        - Exclude U and any user already followed by U (successors(U)).
+        - Score candidates by how many f in F follow them (frequency).
+        - Sort by score desc and show top suggestions.
+        """
+        if not hasattr(self, 'suggestions_user_combo'):
+            return
+
+        # If no real user is selected (placeholder shown), clear suggestions
+        idx = self.suggestions_user_combo.currentIndex()
+        user_name = self.suggestions_user_combo.currentText()
+        if idx == -1 or not user_name:
+            self.suggestions_list.clear()
+            # Reset highlight color when no user is selected
+            try:
+                if hasattr(self, 'suggestions_color_combo'):
+                    self.suggestions_color_combo.blockSignals(True)
+                    self.suggestions_color_combo.setCurrentIndex(-1)
+            finally:
+                if hasattr(self, 'suggestions_color_combo'):
+                    self.suggestions_color_combo.blockSignals(False)
+            return
+
+        # Determine user id depending on label mode
+        mode = getattr(self, 'labels_mode_combo', None).currentText() if hasattr(self, 'labels_mode_combo') else 'Names'
+        user_id = None
+        if mode == 'IDs':
+            user_id = str(user_name)
+        else:
+            for uid, uname in self.nodes.items():
+                if uname == user_name:
+                    user_id = str(uid)
+                    break
+
+        if user_id is None:
+            self.suggestions_list.clear()
+            return
+
+        if self.graph is None or user_id not in self.graph:
+            self.suggestions_list.clear()
+            return
+
+        followers = set(self.graph.predecessors(user_id))
+
+        # Collect candidates and count frequency
+        # Use followers-of-followers: for each follower f in followers,
+        # consider predecessors(f) (people who follow f) as candidates.
+        candidate_counts = {}
+        for f in followers:
+            for cand in self.graph.predecessors(f):
+                candidate_counts[cand] = candidate_counts.get(cand, 0) + 1
+
+        # Exclude the user and users already followed by the user
+        already_following = set(self.graph.successors(user_id))
+        excluded = already_following | {user_id}
+
+        # Build filtered list
+        filtered = [(cand, cnt) for cand, cnt in candidate_counts.items() if cand not in excluded]
+        if not filtered:
+            self.suggestions_list.clear()
+            self.suggestions_list.addItem(QListWidgetItem("No suggestions found"))
+            self.suggested_users = set()
+            self.draw_graph()
+            return
+
+        # Sort by frequency desc
+        filtered.sort(key=lambda x: x[1], reverse=True)
+
+        # Build display text (top 10) with robust name resolution
+        def _resolve_name(nid):
+            if nid in self.nodes:
+                return self.nodes[nid]
+            for k, v in self.nodes.items():
+                if str(k) == str(nid):
+                    return v
+            return str(nid)
+
+        top = filtered[:10]
+        # Populate list widget (show IDs with 'UserID:' prefix if mode==IDs, otherwise names)
+        self.suggestions_list.clear()
+        suggested_ids = []
+        for cand, _ in top:
+            if mode == 'IDs':
+                display = f"UserID: {cand}"
+            else:
+                display = _resolve_name(cand)
+            self.suggestions_list.addItem(QListWidgetItem(display))
+            suggested_ids.append(str(cand))
+
+        # Store suggested ids for highlighting and redraw
+        self.suggested_users = set(suggested_ids)
+        self.draw_graph()
     
     def find_mutual_followers(self):
         """Find and display mutual followers between selected users."""
@@ -747,14 +1072,24 @@ class GraphVisualizationWindow(QWidget):
             self.mutual_label.setText("Please select both users")
             return
         
-        # Find user IDs from names
+        # Determine user IDs depending on label mode
+        # robustly check mode
+        try:
+            mode = self.labels_mode_combo.currentText()
+        except AttributeError:
+            mode = 'Names'
+
         user1_id = None
         user2_id = None
-        for uid, uname in self.nodes.items():
-            if uname == user1_name:
-                user1_id = uid
-            if uname == user2_name:
-                user2_id = uid
+        if mode == 'IDs':
+            user1_id = str(user1_name)
+            user2_id = str(user2_name)
+        else:
+            for uid, uname in self.nodes.items():
+                if uname == user1_name:
+                    user1_id = uid
+                if uname == user2_name:
+                    user2_id = uid
         
         if not user1_id or not user2_id:
             self.mutual_label.setText("Selected users not found")
@@ -778,14 +1113,20 @@ class GraphVisualizationWindow(QWidget):
         self.selected_users = {user1_id, user2_id}
         self.selected_mutual_followers = mutual_followers
         
-        # Format results
-        result_text = f"<b>Mutual Followers between {user1_name} and {user2_name}:</b><br>"
-        
+        # Format results - show IDs if mode==IDs
+        display_user1 = (f"User ID: {user1_id}" if mode == 'IDs' else user1_name)
+        display_user2 = (f"User ID: {user2_id}" if mode == 'IDs' else user2_name)
+        result_text = f"<b>Mutual Followers between {display_user1} and {display_user2}:</b><br>"
+
         if mutual_followers:
             result_text += f"<br>Found {len(mutual_followers)} mutual follower(s):<br>"
             for follower_id in sorted(mutual_followers):
-                follower_name = self.nodes.get(follower_id, follower_id)
-                result_text += f"• {follower_name}<br>"
+                # Ensure we show ID if mode is IDs, ignoring node name
+                if mode == 'IDs':
+                    follower_display = f"User ID: {follower_id}"
+                else:
+                    follower_display = self.nodes.get(follower_id, follower_id)
+                result_text += f"• {follower_display}<br>"
         else:
             result_text += "<br>No mutual followers found"
         
@@ -949,8 +1290,12 @@ class GraphVisualizationWindow(QWidget):
                 linewidths=2.5
             )
         
-        # Highlight selected users if any
-        if self.selected_users:
+        # Highlight selected users if any (and enabled)
+        should_highlight_mutual = True
+        if hasattr(self, 'mutual_highlight_check'):
+             should_highlight_mutual = self.mutual_highlight_check.isChecked()
+
+        if self.selected_users and should_highlight_mutual:
             selected_nodes = [n for n in self.selected_users if n in self.graph.nodes()]
             if selected_nodes:
                 # Use the same size as the actual node
@@ -965,8 +1310,8 @@ class GraphVisualizationWindow(QWidget):
                     linewidths=3
                 )
         
-        # Highlight mutual followers
-        if self.selected_mutual_followers:
+        # Highlight mutual followers (and enabled)
+        if self.selected_mutual_followers and should_highlight_mutual:
             mutual_nodes = [n for n in self.selected_mutual_followers if n in self.graph.nodes()]
             if mutual_nodes:
                 # Use the same size as the actual node
@@ -980,16 +1325,69 @@ class GraphVisualizationWindow(QWidget):
                     edgecolors='#333333',
                     linewidths=3
                 )
+
+        # Highlight follow suggestions (color selectable)
+        if hasattr(self, 'suggested_users') and self.suggested_users:
+            # Determine color from combo (if present)
+            color_name = None
+            if hasattr(self, 'suggestions_color_combo'):
+                color_name = self.suggestions_color_combo.currentText()
+
+            color_map = {
+                'Orange': '#FFA500',
+                'Purple': '#A020F0',
+                'Cyan': '#00CED1'
+            }
+
+            if color_name is None or color_name == 'None':
+                highlight_color = None
+            else:
+                highlight_color = color_map.get(color_name, '#FFA500')
+
+            if highlight_color:
+                suggested_nodes = [n for n in self.suggested_users if n in self.graph.nodes()]
+                if suggested_nodes:
+                    all_nodes_list = list(self.graph.nodes())
+                    suggested_sizes = [node_sizes[all_nodes_list.index(n)] for n in suggested_nodes]
+                    nx.draw_networkx_nodes(
+                        self.graph.subgraph(suggested_nodes), pos, ax=ax,
+                        node_color=highlight_color,
+                        node_size=suggested_sizes,
+                        alpha=1.0,
+                        edgecolors='#333333',
+                        linewidths=3
+                    )
         
-        # Draw labels if enabled
-        if self.labels_checkbox.isChecked():
+        # Draw labels according to selected label mode (None / Names / IDs)
+        labels_mode = getattr(self, 'labels_mode_combo', None)
+        mode = labels_mode.currentText() if labels_mode is not None else 'Names'
+
+        if mode == 'IDs':
+            labels = {node: node for node in self.graph.nodes()}
+        else:
             labels = {node: self.nodes.get(node, node) for node in self.graph.nodes()}
-            nx.draw_networkx_labels(
-                self.graph, pos, labels, ax=ax,
-                font_size=10,
-                font_weight='bold',
-                font_color='red'
-            )
+        # Determine font color from combo if present
+        font_color_name = None
+        if hasattr(self, 'font_color_combo'):
+            font_color_name = self.font_color_combo.currentText()
+
+        color_map = {
+            'Black': 'black',
+            'White': 'white',
+            'Red': 'red',
+            'Blue': 'blue',
+            'Green': 'green',
+            'Gray': 'gray'
+        }
+
+        font_color = color_map.get(font_color_name, 'red')
+
+        nx.draw_networkx_labels(
+            self.graph, pos, labels, ax=ax,
+            font_size=10,
+            font_weight='bold',
+            font_color=font_color
+        )
         
         # Set title
         ax.set_title(
@@ -1014,8 +1412,8 @@ class GraphVisualizationWindow(QWidget):
         file_path, _ = QFileDialog.getSaveFileName(
             self,
             "Save Graph Image",
-            "socialx_graph.png",
-            "PNG Image (*.png);;JPEG Image (*.jpg);;PDF Document (*.pdf);;SVG Image (*.svg)"
+            "socialx_graph.jpg",
+            "JPEG Image (*.jpg);;PNG Image (*.png);;PDF Document (*.pdf);;SVG Image (*.svg)"
         )
         
         if file_path:
