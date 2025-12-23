@@ -2,9 +2,9 @@
 Application Manager - Controls the flow between windows
 """
 import sys
-
+import os
 from PySide6.QtWidgets import QApplication
-from PySide6.QtGui import QFont
+from PySide6.QtGui import QFont, QIcon
 from src.ui import ManualWindow
 from src.ui import LandingWindow
 from src.ui import BrowseWindow
@@ -18,6 +18,17 @@ class AppManager:
         self.app = QApplication.instance()
         if self.app is None:
             self.app = QApplication(sys.argv)
+        
+        # Set application icon
+        # Handle PyInstaller temporary directory path
+        if hasattr(sys, '_MEIPASS'):
+            base_path = sys._MEIPASS
+        else:
+            base_path = os.path.dirname(os.path.abspath(__file__))
+            
+        icon_path = os.path.join(base_path, 'icon.ico')
+        if os.path.exists(icon_path):
+            self.app.setWindowIcon(QIcon(icon_path))
 
         # Set application font
         font = QFont("Segoe UI", 10)

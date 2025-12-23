@@ -1,8 +1,17 @@
 import sys
 from colorama import init, Fore, Style
 
+
+# Set stdout encoding to utf-8 explicitly for PyInstaller exe compatibility
+if sys.stdout is not None and hasattr(sys.stdout, 'reconfigure'):
+    try:
+        sys.stdout.reconfigure(encoding='utf-8')
+    except Exception:
+        pass
+
 # Initialize colorama
 init(autoreset=True)
+
 
 def print_banner():
     """Print the ASCII art banner for the application."""
