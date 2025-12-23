@@ -109,7 +109,7 @@ flowchart TD
 1. **Clone the repository**
    ```bash
    git clone <repository-url>
-   cd xml-editor
+   cd SocialX_Xml_Editor
    ```
 
 2. **Install dependencies**
