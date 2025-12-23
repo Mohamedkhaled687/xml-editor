@@ -98,7 +98,7 @@ def read_binary(path: str) -> Tuple[bool, Union[bytes, str]]:
 
 # remove the following comments to run demo
 
-# p = pathlib.Path("C:/Users/youss/OneDrive/Desktop/Kolya/DSA/trial/Py_GUI/assets/samples/non_formatted.xml")
+# p = pathlib.Path("C:/Users/youss/OneDrive/Desktop/Kolya/DSA/trial/Py_GUI/assets/samples/Non_formatted_sample.xml")
 #
 # txt = read_file(str(p))[1]
 #

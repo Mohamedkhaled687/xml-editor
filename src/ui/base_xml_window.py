@@ -1,6 +1,7 @@
 """
 Base XML Window - Provides common functionality for XML-related UI windows.
 """
+import json
 from typing import Optional, Dict, List, Tuple, Any
 from PySide6.QtWidgets import (QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
                                QPushButton, QTextEdit, QLineEdit, QFileDialog,
@@ -39,11 +40,43 @@ class BaseXMLWindow(QMainWindow):
         self.output_text: str = ""
         self.result_text_box: QTextEdit = QTextEdit()
 
+        self.xml_buttons = []
+        self.compressed_buttons = []
+
+        # Initialize backing attributes before using the properties
+        self._is_xml: bool = False
+        self._is_compressed: bool = False
+
+        # Initialize properties (may trigger any setter side effects)
+        self.is_xml = False
+        self.is_compressed = False
         self.window_title: str = window_title
         self.mode_name: str = mode_name
 
         self.setup_ui()
         self.apply_stylesheet()
+
+    @property
+    def is_xml(self) -> bool:
+        return self._is_xml
+
+    @is_xml.setter
+    def is_xml(self, value: bool):
+        self._is_xml = value
+        if hasattr(self, 'xml_buttons'):
+            for btn in self.xml_buttons:
+                btn.setEnabled(value)
+
+    @property
+    def is_compressed(self) -> bool:
+        return self._is_compressed
+
+    @is_compressed.setter
+    def is_compressed(self, value: bool):
+        self._is_compressed = value
+        if hasattr(self, 'compressed_buttons'):
+            for btn in self.compressed_buttons:
+                btn.setEnabled(value)
 
     def setup_ui(self) -> None:
         """Set up the user interface."""
@@ -91,12 +124,12 @@ class BaseXMLWindow(QMainWindow):
         result_widget.setObjectName("resultPanel")
         result_layout = QVBoxLayout(result_widget)
         result_layout.setContentsMargins(20, 20, 20, 20)
-        result_layout.setSpacing(15)
+        result_layout.setSpacing(10)
 
         result_title = QLabel("Operation Result")
         result_title.setStyleSheet("""
             QLabel {
-                color: rgba(100, 230, 255, 255);
+                color: rgba(200, 210, 220, 255);
                 font-size: 22px;
                 font-weight: bold;
             }
@@ -109,7 +142,7 @@ class BaseXMLWindow(QMainWindow):
         save_btn.clicked.connect(self.save)
 
         result_title_layout = QHBoxLayout()
-        result_title_layout.setContentsMargins(20, 20, 20, 20)
+        result_title_layout.setContentsMargins(5, 5, 5, 5)
         result_title_layout.setSpacing(40)
 
         result_title_layout.addWidget(result_title)
@@ -129,37 +162,53 @@ class BaseXMLWindow(QMainWindow):
         ops_widget = QWidget()
         ops_widget.setObjectName("opsPanel")
         ops_layout = QVBoxLayout(ops_widget)
-        ops_layout.setContentsMargins(20, 20, 20, 20)
-        ops_layout.setSpacing(15)
+        ops_layout.setContentsMargins(20, 30, 20, 30)
+        ops_layout.setSpacing(17)
 
         ops_title = QLabel("Operations")
         ops_title.setStyleSheet("""
             QLabel {
-                color: rgba(100, 230, 255, 255);
-                font-size: 20px;
+                color: rgba(200, 210, 220, 255);
+                font-size: 25px;
                 font-weight: bold;
             }
         """)
+
+        ops_subtitle = QLabel("Manage, Transform and Analyze XML Data")
+        ops_subtitle.setContentsMargins(0, 0, 0, 10)
+        ops_subtitle.setStyleSheet("""
+            QLabel {
+                color: rgba(200, 210, 220, 255);
+                font-size: 12px;
+            }
+        """)
+
         ops_layout.addWidget(ops_title)
+        ops_layout.addWidget(ops_subtitle)
 
         parsing_ops = [
-            ("📋 Validate XML Structure", self.validate_xml),
-            ("🛠️ Correct Errors", self.correct_errors),
-            ("✨ Format XML", self.format_xml),
-            ("📦 Compress File", self.compress),
-            ("📂 Decompress File", self.decompress),
-            ("✂️ Minify XML", self.minify),
-            ("📄 Export to JSON", self.export_to_json),
-            ("🕸️ Visualize Network Graph", self.visualize_network),
-            ("📊 Show Users Statistics", self.show_user_stats),
-            ("🔍 Search for Topic/Posts", self.search)
+            ("📋 Check XML Errors", self.validate_xml, "is_xml"),
+            ("🛠️ Fix XML Errors", self.correct_errors, "is_xml"),
+            ("✨ Format XML", self.format_xml, "is_xml"),
+            ("📦 Compress XML", self.compress, "is_xml"),
+            ("📂 Decompress to XML", self.decompress, "is_compressed"),
+            ("✂️ Minify XML", self.minify, "is_xml"),
+            ("📄 XML to JSON", self.export_to_json, "is_xml"),
+            ("🕸️ Explore Network", self.visualize_network, "is_xml"),
+            ("🔍 Post search", self.search, "is_xml")
         ]
 
-        for text, handler in parsing_ops:
+        for text, handler, enable_signal in parsing_ops:
             btn = QPushButton(text)
             btn.setObjectName("operationBtn")
-            btn.setMinimumHeight(42)
+            btn.setMinimumHeight(46)
             btn.clicked.connect(handler)
+
+            if enable_signal == "is_xml":
+                self.xml_buttons.append(btn)
+            elif enable_signal == "is_compressed":
+                self.compressed_buttons.append(btn)
+
             ops_layout.addWidget(btn)
 
         ops_layout.addStretch()
@@ -300,9 +349,10 @@ class BaseXMLWindow(QMainWindow):
                 border: 1px solid rgba(80, 120, 180, 150);
                 border-radius: 8px;
                 color: rgba(200, 220, 240, 255);
-                font-size: 13px;
+                font-size: 15px;
                 text-align: left;
-                padding-left: 15px;
+                font-weight: bold;
+                padding-left: 10px;
             }}
 
             #operationBtn:hover {{
@@ -313,6 +363,11 @@ class BaseXMLWindow(QMainWindow):
 
             #operationBtn:pressed {{
                 background: rgba(30, 50, 80, 180);
+            }}
+            #operationBtn:disabled {{
+                background: rgba(40, 40, 40, 100);
+                color: rgba(150, 150, 150, 100);
+                border: 1px solid rgba(100, 100, 100, 50);
             }}
         """)
 
@@ -338,9 +393,9 @@ class BaseXMLWindow(QMainWindow):
 
         file_path, _ = QFileDialog.getSaveFileName(
             self,
-            "Save Result",
+            "Select XML File",
             "",
-            "Text Files (*.txt);; XML Files (*.xml);;JSON Files (*.json);;All Files (*)"
+            "XML files (*.xml);;Text files (*.txt);;JSON files (*.json)"
         )
 
         if not file_path:
@@ -394,18 +449,64 @@ class BaseXMLWindow(QMainWindow):
         if not self.error_event_handler():
             return
 
-        self.output_text = self.xml_controller.validate()
+        self.output_text, error_counts = self.xml_controller.validate()
         self.result_text_box.setText(self.output_text)
         self.result_text_box.show()
 
+        # Show status message box
+        if error_counts['total'] == 0:
+            QMessageBox.information(
+                self,
+                "Validation Success",
+                "XML structure is valid!\nNo errors found."
+            )
+        else:
+            error_details = []
+            if error_counts['orphan_tags'] > 0:
+                error_details.append(f"- {error_counts['orphan_tags']} orphan tag(s)")
+            if error_counts['mismatches'] > 0:
+                error_details.append(f"- {error_counts['mismatches']} mismatch(es)")
+            if error_counts['missing_closing_tags'] > 0:
+                error_details.append(f"- {error_counts['missing_closing_tags']} missing closing tag(s)")
+
+            QMessageBox.warning(
+                self,
+                "Validation Failed",
+                f"Found {error_counts['total']} error(s):\n" + "\n".join(error_details) +
+                "\n\nCheck the result box for detailed line-by-line annotations."
+            )
+
     def correct_errors(self) -> None:
-        """Parse user data and show statistics."""
+        """Correct XML errors and show correction status."""
         if not self.error_event_handler():
             return
 
-        self.output_text = self.xml_controller.autocorrect()
+        self.output_text, correction_counts = self.xml_controller.autocorrect()
         self.result_text_box.setText(self.output_text)
         self.result_text_box.show()
+
+        # Show status message box
+        if correction_counts['total_corrections'] == 0:
+            QMessageBox.information(
+                self,
+                "No Corrections Needed",
+                "XML structure is already correct!\nNo errors found to fix."
+            )
+        else:
+            correction_details = []
+            if correction_counts['missing_tags_added'] > 0:
+                correction_details.append(f"- {correction_counts['missing_tags_added']} missing closing tag(s) added")
+            if correction_counts['stray_tags_removed'] > 0:
+                correction_details.append(f"- {correction_counts['stray_tags_removed']} stray closing tag(s) removed")
+            if correction_counts['mismatches_fixed'] > 0:
+                correction_details.append(f"- {correction_counts['mismatches_fixed']} mismatch(es) fixed")
+
+            QMessageBox.information(
+                self,
+                "Corrections Applied",
+                f"Fixed {correction_counts['total_corrections']} error(s):\n" + "\n".join(correction_details) +
+                "\n\nCheck the result box to see the corrected XML."
+            )
 
     def format_xml(self) -> None:
         """Format/prettify XML file."""
@@ -429,9 +530,16 @@ class BaseXMLWindow(QMainWindow):
         if not self.error_event_handler():
             return
 
-        self.output_text = self.xml_controller.decompress_from_string(self.input_text)
-        self.result_text_box.setText(self.output_text)
-        self.result_text_box.show()
+        try:
+            self.output_text = self.xml_controller.decompress_from_string(None, None, self.input_text)
+            self.result_text_box.setText(self.output_text)
+            self.result_text_box.show()
+        except Exception as e:
+            QMessageBox.critical(
+                self,
+                "Decompression Error",
+                f"Failed to decompress the data:\n\n{str(e)}"
+            )
 
     def minify(self) -> None:
         """View XML file content in code viewer."""
@@ -448,7 +556,7 @@ class BaseXMLWindow(QMainWindow):
             return
 
         self.output_text = self.xml_controller.export_to_json()
-        self.result_text_box.setText(str(self.output_text))
+        self.result_text_box.setText(json.dumps(self.output_text, indent=2, ensure_ascii=False))
         self.result_text_box.show()
 
     def visualize_network(self) -> None:
@@ -466,34 +574,11 @@ class BaseXMLWindow(QMainWindow):
                 metrics = self.graph_controller.get_metrics()
                 graph_window = GraphVisualizationWindow(nodes, edges, self.size(), self)
                 graph_window.set_graph_data(nodes, edges, G, metrics)
-                graph_window.show()
+                graph_window.showMaximized()
             except Exception as e:
                 QMessageBox.critical(self, "Error", f"Failed to open graph visualization:\n{str(e)}")
         else:
             QMessageBox.critical(self, "Graph Build Failed", f"Failed to build graph:\n{error}")
-
-    def show_user_stats(self) -> None:
-        """Show user statistics."""
-        # if not self.data_controller or not self.data_controller.xml_data:
-        #     QMessageBox.warning(self, "No Data", "Please upload and parse an XML file first.")
-        #     return
-        #
-        # success, stats, error = self.data_controller.calculate_statistics()
-        #
-        # if success:
-        #
-        #     stats_text = (
-        #         f"User Statistics:\n\n"
-        #         f"Total Users: {stats.get('total_users', 0)}\n"
-        #         f"Total Posts: {stats.get('total_posts', 0)}\n"
-        #         f"Total Followers: {stats.get('total_followers', 0)}\n"
-        #         f"Total Following: {stats.get('total_following', 0)}\n"
-        #         f"Average Followers: {stats.get('avg_followers', 0):.2f}\n"
-        #         f"Average Posts: {stats.get('avg_posts', 0):.2f}"
-        #     )
-        #     QMessageBox.information(self, "User Statistics", stats_text)
-        # else:
-        #     QMessageBox.critical(self, "Statistics Failed", f"Failed to calculate statistics:\n{error}")
 
     def search(self) -> None:
         """
@@ -599,7 +684,7 @@ class BaseXMLWindow(QMainWindow):
 
     def search_in_post(self, keyword: str, Type: str) -> Optional[List[str]]:
         """Placeholder logic for searching within topics."""
-        # if Type =='word':
-        #     return self.data_controller.search_in_posts(word = keyword)
-        # else:
-        #     return self.data_controller.search_in_posts(topic = keyword)
+        if Type =='word':
+            return self.xml_controller.search_in_posts(word = keyword)
+        else:
+            return self.xml_controller.search_in_posts(topic = keyword)

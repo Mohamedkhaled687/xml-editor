@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<social_network>
+    <!-- Target User A -->
+    <user id="1">
+        <name>Alice (Target A)</name>
+    </user>
+
+    <!-- Target User B -->
+    <user id="2">
+        <name>Bob (Target B)</name>
+    </user>
+
+    <!-- Mutual Follower: Charlie follows both Alice and Bob -->
+    <!-- 
+       NOTE: Based on DataParser logic, the <followers> tag creates an edge 
+       FROM the user TO the listed id.
+       So here, Charlie -> 1 (Alice) and Charlie -> 2 (Bob).
+       This makes Charlie a predecessor (follower) of both.
+    -->
+    <user id="3">
+        <name>Charlie (Mutual)</name>
+        <followers>
+            <follower>
+                <id>1</id>
+            </follower>
+            <follower>
+                <id>2</id>
+            </follower>
+        </followers>
+    </user>
+
+    <!-- David only follows Alice -->
+    <user id="4">
+        <name>David (Follows A)</name>
+        <followers>
+            <follower>
+                <id>1</id>
+            </follower>
+        </followers>
+    </user>
+
+    <!-- Eve only follows Bob -->
+    <user id="5">
+        <name>Eve (Follows B)</name>
+        <followers>
+            <follower>
+                <id>2</id>
+            </follower>
+        </followers>
+    </user>
+</social_network>

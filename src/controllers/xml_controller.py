@@ -11,12 +11,13 @@ Key Features:
 - Minify XML by removing all whitespace
 - Validate XML structure and semantics
 
-Author: [Your Name]
-Date: [Date]
-"""
 
+"""
+from ..utils import file_io,XMLTree
 import textwrap
 import re
+import base64
+import binascii
 from typing import List, Tuple, Optional, Any, Dict
 from ..utils.binary_utils import ByteUtils
 
@@ -36,7 +37,7 @@ class XMLController:
         xml_string (str): The XML content to be processed
     """
 
-    def __init__(self, xml: str = None):
+    def __init__(self, xml: str = None) -> None:
         """
         Initialize the XMLController with optional XML content.
 
@@ -46,7 +47,7 @@ class XMLController:
         Example:
             controller = XMLController("<root><child>text</child></root>")
         """
-        self.xml_string: str = xml
+        self.xml_string: str = xml if xml is not None else ""
         self.xml_data: Optional[None] = None  # placeholder for parsed XML data structure,avoid attributes error
         if xml: self.set_xml_string(xml)  # initialize with provided XML
 
@@ -54,7 +55,7 @@ class XMLController:
     # SECTION 1: HELPER METHODS (Setter, Getter, Tokenizer)
     # ===================================================================
 
-    def set_xml_string(self, xml_string: str):
+    def set_xml_string(self, xml_string: str) -> None:
         """
         Set or update the XML string to be processed.
 
@@ -79,7 +80,7 @@ class XMLController:
         """
         return self.xml_string
 
-    def _get_tokens(self) -> List:
+    def _get_tokens(self) -> List[str]:
         """
         Parse a raw XML string into a structured list of tokens.
 
@@ -89,7 +90,7 @@ class XMLController:
         - Text content: the text between tags
 
         Returns:
-            List: A list of tokens extracted from the XML
+            List[str]: A list of tokens extracted from the XML
 
         Example:
             Input:  "<user><name>Ali</name></user>"
@@ -127,9 +128,15 @@ class XMLController:
 
         return tokens
 
-    def _get_tag_info(self, token: str) -> Tuple[str, dict]:
+    def _get_tag_info(self, token: str) -> Tuple[str, Dict[str, str]]:
         """
         Custom parser helper to extract tag name and attributes from a token.
+        
+        Args:
+            token (str): XML tag token to parse
+            
+        Returns:
+            Tuple[str, Dict[str, str]]: Tag name and dictionary of attributes
         """
         tag_content = token.strip('<>').strip('/')  # remove angle brackets and slashes
 
@@ -227,15 +234,25 @@ class XMLController:
     # ===================================================================
 
 
-    def validate(self):
+    def validate(self) -> Tuple[str, Dict[str, int]]:
         """
         Parses self.xml_string, detects structural errors, and returns a new string
         where errors are annotated with '<---' at the end of the problematic lines.
 
         note: detect the structural errors of the xml file format and doesn't handle efficiently the data errors
         (spelling mistakes choose a tag name that may not be the correct one to be chosen)
+        
+        Returns:
+            Tuple[str, Dict[str, int]]: A tuple containing:
+                - XML string with error annotations
+                - Dictionary with error counts: {'orphan_tags': int, 'mismatches': int, 'missing_closing_tags': int, 'total': int}
         """
         stack = []
+        
+        # Initialize error counters
+        orphan_count = 0
+        mismatch_count = 0
+        missing_count = 0
 
         # Split string into a list of lines.
         # We will modify this list directly to add annotations.
@@ -262,6 +279,7 @@ class XMLController:
                     # CLOSING TAG
                     if not stack:
                         # Error: Closing tag found, but stack is empty
+                        orphan_count += 1
                         annotated_lines[line_idx] += f" <--- ORPHAN TAG: Found </{tag_name}> but no opening tag exists."
                     else:
                         top = stack[-1]
@@ -271,6 +289,7 @@ class XMLController:
                         else:
                             # Error: Mismatch
                             # We found a closing tag, but it doesn't match the most recent opening tag.
+                            mismatch_count += 1
                             annotated_lines[
                                 line_idx] += f" <--- MISMATCH: Expected </{top['tag']}>, found </{tag_name}>."
 
@@ -281,24 +300,43 @@ class XMLController:
         # After processing all lines, check if the stack is not empty.
         # These are tags that were opened but never closed.
         while stack:
+            missing_count += 1
             leftover = stack.pop()
             # We go back to the line where this tag was opened and add the error there
             idx = leftover['line_idx']
             annotated_lines[idx] += f" <--- MISSING CLOSING TAG: Tag <{leftover['tag']}> is never closed."
 
-        # Join the lines back into a single string to be displayed in the UI text box
-        return "\n".join(annotated_lines)
+        # Build error counts dictionary
+        error_counts = {
+            'orphan_tags': orphan_count,
+            'mismatches': mismatch_count,
+            'missing_closing_tags': missing_count,
+            'total': orphan_count + mismatch_count + missing_count
+        }
 
-    def autocorrect(self):
+        # Join the lines back into a single string to be displayed in the UI text box
+        annotated_string = "\n".join(annotated_lines)
+        return annotated_string, error_counts
+
+    def autocorrect(self) -> Tuple[str, Dict[str, int]]:
         """
         Attempts to fix the XML by balancing tags.
         Returns the fixed XML string and updates self.xml_string.
 
         note: correct the structural errors of the xml file format and doesn't handle efficiently the data errors
         (spelling mistakes choose a tag name that may not be the correct one to be chosen)
+        
+        Returns:
+            Tuple[str, Dict[str, int]]: A tuple containing:
+                - Fixed XML string (without formatting)
+                - Dictionary with correction counts: {'missing_tags_added': int, 'stray_tags_removed': int, 'mismatches_fixed': int, 'total_corrections': int}
         """
         stack = []
-        fixed_lines = []
+        
+        # Initialize correction counters
+        missing_tags_added = 0
+        stray_tags_removed = 0
+        mismatches_fixed = 0
 
         # We need to parse slightly differently: we want to rebuild the string
         # Regex to tokenize: Tag OR non-tag content
@@ -338,12 +376,14 @@ class XMLController:
                             while stack[-1] != tag_name:
                                 missing_tag = stack.pop()
                                 corrected_output.append(f"</{missing_tag}>")
+                                mismatches_fixed += 1  # Track intermediate tag closure
 
                             # Now pop the matching tag
                             stack.pop()
                             corrected_output.append(token)
                         else:
                             # It's a stray closing tag that wasn't opened. Ignore/Delete it.
+                            stray_tags_removed += 1  # Track removed stray tag
                             pass
             else:
                 # Just text content, append as is
@@ -353,10 +393,20 @@ class XMLController:
         while stack:
             missing_tag = stack.pop()
             corrected_output.append(f"</{missing_tag}>")
+            missing_tags_added += 1  # Track added missing closing tag
+
+        # Build correction counts dictionary
+        correction_counts = {
+            'missing_tags_added': missing_tags_added,
+            'stray_tags_removed': stray_tags_removed,
+            'mismatches_fixed': mismatches_fixed,
+            'total_corrections': missing_tags_added + stray_tags_removed + mismatches_fixed
+        }
 
         # Update the class attribute
-        self.xml_string = "".join(corrected_output)
-        return self.format()
+        corrected_string = "".join(corrected_output)
+        self.xml_string = corrected_string
+        return corrected_string, correction_counts
 
     # ===================================================================
     # SECTION 5: JSON EXPORT METHOD
@@ -486,7 +536,7 @@ class XMLController:
     # SECTION 6: Compression and Decompression
     # ===================================================================
 
-    def compress_to_string(self) -> str:
+    def compress_to_string(self, output_path: Optional[str] = None) -> str:
         if not self.xml_string:
             return ""
 
@@ -547,10 +597,34 @@ class XMLController:
         for t in tokens:
             out.extend(ByteUtils.pack_u16(t))
 
-        return bytes([b if b < 256 else 63 for b in out]).decode("latin-1")
+        # Fixation: Convert raw binary 'out' to a Base64 string for UI/File safety
+        output = base64.b64encode(out).decode('utf-8')
 
-    def decompress_from_string(self, compressed_string: str = None) -> str:
-        data = bytearray(compressed_string.encode("latin-1"))
+        if output_path:
+            with open(output_path, mode='w') as f:
+                f.write(output)
+
+        return output
+
+    def decompress_from_string(self,
+                               output_path: Optional[str] = None,
+                               input_path: Optional[str] = None,
+                               compressed_string: Optional[str] = None
+                               ) -> str:
+
+        try:
+            if input_path is not None:
+                with open(input_path, 'r') as f:
+                    # Fixation: Read the Base64 string from file and decode to binary
+                    data = bytearray(base64.b64decode(f.read().strip()))
+            elif compressed_string is not None:
+                # Fixation: Decode the manually entered Base64 string to binary
+                data = bytearray(base64.b64decode(compressed_string.strip()))
+            else:
+                raise ValueError("You must provide either an input_path or a compressed_string.")
+        except (binascii.Error, ValueError) as e:
+            raise ValueError(f"Invalid compressed data format: {e}")
+
         offset = 0
         try:
             # Check for at least 4 bytes for merge_count
@@ -596,7 +670,58 @@ class XMLController:
                         new_tokens.append(t)
                 tokens = new_tokens
 
-            self.xml_string = ''.join(chr(t) for t in tokens)
-            return self.xml_string
+            output = ''.join(chr(t) for t in tokens)
+            if output_path is not None:
+                file_io.write_file(output_path, data=output)
+
+            return output
         except Exception as e:
-            raise ValueError(f"Failed to decompress string: {e}")
+            raise ValueError(f"{e}")
+
+    def search_in_posts(self,
+                        word: Optional[str] = None,
+                        topic: Optional[str] = None
+                        ) -> Optional[List[str]]:
+        """
+        Searching ability in the post for a topic or a word.
+        """
+        if (word is None and topic is None) or (word is not None and topic is not None):
+            return None
+        if hasattr(self, 'xml_string') and self.xml_data is None:
+            self.xml_data = XMLTree.fromstring(self.xml_string)
+
+        if not self.xml_data:
+            return None
+
+        result = []
+        users = self.xml_data.findall('.//user')
+
+        for user in users:
+            name_node = user.find('name')
+            user_name = name_node.text.strip() if (name_node and name_node.text) else "Unknown User"
+
+            posts = user.findall('.//post')
+            for post_elem in posts:
+                found = False
+                body_node = post_elem.find('body')
+                body_text = body_node.text if (body_node and body_node.text) else ""
+                if word is not None:
+                    if word.lower() in body_text.lower():
+                        found = True
+
+                elif topic is not None:
+
+                    topic_elements = post_elem.findall('.//topic')
+                    for topic_elem in topic_elements:
+                        if topic_elem.text and topic.lower() in topic_elem.text.lower():
+                            found = True
+                            break
+
+                if found:
+                    clean_body = body_text.strip().replace('\n', ' ')
+                    result.append(f"in user: {user_name}'s. found relevant post: {clean_body}\n\n")
+
+        if len(result) == 0:
+            result.append("found no relevant posts in any user's posts")
+
+        return result

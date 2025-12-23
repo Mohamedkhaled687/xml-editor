@@ -437,28 +437,33 @@ controller_test = XMLController(xml_test)
 print("=" * 80)
 print("VALIDATION REPORT (BEFORE CORRECTION)")
 print("=" * 80)
-print(controller_test.validate())
+annotated_xml, error_counts = controller_test.validate()
+print(annotated_xml)
+print(f"\nError counts: {error_counts}")
 
 print("\n" + "=" * 80)
 print("AUTO-CORRECTING XML...")
 print("=" * 80)
 
-# Auto-correct the XML (this returns the formatted corrected XML)
-corrected_formatted_xml = controller_test.autocorrect()
+# Auto-correct the XML (this returns a tuple: corrected XML string and correction counts)
+corrected_xml, correction_counts = controller_test.autocorrect()
 
 print("\n✓ Auto-correction completed!")
+print(f"Correction counts: {correction_counts}")
 
-# Write corrected and formatted XML to file
+# Write corrected XML to file
 formatted_filename = "corrected_formatted.xml"
 with open(formatted_filename, 'w', encoding='utf-8') as f:
-    f.write(corrected_formatted_xml)
+    f.write(corrected_xml)
 
-print(f"✓ Corrected and formatted XML written to '{formatted_filename}'")
+print(f"✓ Corrected XML written to '{formatted_filename}'")
 
 print("\n" + "=" * 80)
 print("VALIDATION REPORT (AFTER CORRECTION)")
 print("=" * 80)
-print(controller_test.validate())
+annotated_xml_after, error_counts_after = controller_test.validate()
+print(annotated_xml_after)
+print(f"\nError counts: {error_counts_after}")
 
 # Also write the minified version
 minified_xml = controller_test.minify()

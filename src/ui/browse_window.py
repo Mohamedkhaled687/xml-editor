@@ -14,11 +14,12 @@ from ..utils import file_io
 class BrowseWindow(BaseXMLWindow):
     """Browse mode window for loading XML from files."""
 
-    def __init__(self) -> None:
+    def __init__(self, main_window) -> None:
         self.file_path_box: QLineEdit = QLineEdit()
+        self.main_window = main_window
 
         super().__init__(
-            window_title="🌐 SocialNet XML Parser - Browse Mode",
+            window_title="🌐 SocialX XML Parser - Browse Mode",
             mode_name="Browse mode"
         )
 
@@ -29,12 +30,12 @@ class BrowseWindow(BaseXMLWindow):
         file_widget.setObjectName("filePanel")
         file_layout = QVBoxLayout(file_widget)
         file_layout.setContentsMargins(20, 20, 20, 20)
-        file_layout.setSpacing(15)
+        file_layout.setSpacing(10)
 
         file_title = QLabel("Load XML Data")
         file_title.setStyleSheet("""
             QLabel {
-                color: rgba(100, 230, 255, 255);
+                color: rgba(200, 210, 220, 255);
                 font-size: 22px;
                 font-weight: bold;
             }
@@ -79,7 +80,7 @@ class BrowseWindow(BaseXMLWindow):
             self,
             "Select XML File",
             "",
-            "XML Files (*.xml);;All Files (*)"
+            "XML files (*.xml);;Text files (*.txt)"
         )
 
         if not file_path:
@@ -87,16 +88,16 @@ class BrowseWindow(BaseXMLWindow):
 
         # Validate extension
         _, ext = os.path.splitext(file_path)
-        if ext.lower() != ".xml":
+
+        if self.file_path_box and (ext.lower() == ".xml" or ext.lower() == ".txt"):
+            self.file_path_box.setText(file_path)
+        else:
             QMessageBox.warning(
                 self,
                 "Invalid File",
-                "Please select a valid XML (.xml) file.\n The selected " + ext.lower() + " extension is un acceptable"
+                "Please select a valid XML (.xml) file or Text (.txt) file.\n The selected " + ext.lower() + " extension is unacceptable"
             )
             return
-
-        if self.file_path_box:
-            self.file_path_box.setText(file_path)
 
     def upload(self) -> None:
         if not self.file_path_box.text():
@@ -109,6 +110,19 @@ class BrowseWindow(BaseXMLWindow):
             return
 
         try:
+            if "<" in result and ">" in result:
+                # Update ITSELF
+                self.is_xml = True
+                self.is_compressed = False
+                # Update Parent if it exists and supports these attributes
+                if self.main_window and hasattr(self.main_window, "is_xml"):
+                    self.main_window.is_xml = True
+            else:
+                self.is_xml = False
+                self.is_compressed = True
+                if self.main_window and hasattr(self.main_window, "is_compressed"):
+                    self.main_window.is_compressed = True
+
             self.xml_controller.set_xml_string(result)
             self.graph_controller.set_xml_data(result)
         except Exception as e:

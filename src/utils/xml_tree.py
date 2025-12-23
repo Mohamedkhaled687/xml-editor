@@ -67,7 +67,10 @@ class XMLTree:
     
     def __init__(self):
         self.root: Optional[XMLNode] = None
-    
+
+    def get_root(self):
+        return self.root
+
     @staticmethod
     def fromstring(xml_string: str) -> XMLNode:
         """Parse XML string and return root element."""

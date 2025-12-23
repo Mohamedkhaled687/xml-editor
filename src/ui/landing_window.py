@@ -11,76 +11,152 @@ from PySide6.QtGui import QPainter, QColor, QLinearGradient, QRadialGradient, QP
 
 
 class AnimatedBackground(QWidget):
-    """Widget that draws animated network nodes and connections."""
+    """Widget that draws animated network nodes and connections with optimized performance."""
+
+    CONNECTION_DISTANCE = 180  # Max distance for node connections
+    GRID_CELL_SIZE = 180  # Spatial grid cell size for O(n) neighbor lookups
 
     def __init__(self, parent: Optional[QWidget] = None) -> None:
         super().__init__(parent)
         self.nodes: List[Dict[str, Any]] = []
+        self._grid: Dict[tuple, List[Dict[str, Any]]] = {}
         self.init_nodes()
         self.setAttribute(Qt.WA_TranslucentBackground)
+        self.setAttribute(Qt.WA_OpaquePaintEvent, False)
 
-        # Setup animation timer
+        # Setup animation timer - 33ms for smooth 30 FPS
         self.timer: QTimer = QTimer(self)
-        self.timer.timeout.connect(self.update)
-        self.timer.start(50)  # Update every 50ms
+        self.timer.timeout.connect(self._update_and_repaint)
+        self.timer.start(33)
 
     def init_nodes(self) -> None:
-        """Initialize random nodes for the network animation."""
-        for _ in range(200):
+        """Initialize optimized number of nodes for smooth animation."""
+        # 70 nodes for good coverage on 1200x700 window - spatial grid keeps it smooth
+        for _ in range(100):
             node = {
-                'x': random.randint(0, 1200),
-                'y': random.randint(0, 700),
-                'vx': random.uniform(-0.5, 0.5),
-                'vy': random.uniform(-0.5, 0.5),
+                'x': random.randint(0, 1920),
+                'y': random.randint(0, 1080),
+                'vx': random.uniform(-0.8, 0.8),
+                'vy': random.uniform(-0.8, 0.8),
                 'color': random.choice([
-                    QColor(100, 200, 255, 150),
-                    QColor(180, 100, 255, 150)
-                ])
+                    QColor(100, 200, 255, 180),
+                    QColor(180, 100, 255, 180),
+                    QColor(100, 255, 200, 180)
+                ]),
+                'size': random.randint(6, 12)
             }
             self.nodes.append(node)
+
+    def _build_spatial_grid(self) -> None:
+        """Build spatial hash grid for O(n) neighbor lookups instead of O(n²)."""
+        self._grid.clear()
+        for node in self.nodes:
+            cell_x = int(node['x'] // self.GRID_CELL_SIZE)
+            cell_y = int(node['y'] // self.GRID_CELL_SIZE)
+            key = (cell_x, cell_y)
+            if key not in self._grid:
+                self._grid[key] = []
+            self._grid[key].append(node)
+
+    def _get_nearby_nodes(self, node: Dict[str, Any]) -> List[Dict[str, Any]]:
+        """Get nodes in adjacent cells - O(1) lookup."""
+        cell_x = int(node['x'] // self.GRID_CELL_SIZE)
+        cell_y = int(node['y'] // self.GRID_CELL_SIZE)
+        nearby = []
+        # Check 3x3 grid of cells around current cell
+        for dx in (-1, 0, 1):
+            for dy in (-1, 0, 1):
+                key = (cell_x + dx, cell_y + dy)
+                if key in self._grid:
+                    nearby.extend(self._grid[key])
+        return nearby
+
+    def _update_and_repaint(self) -> None:
+        """Update node positions and trigger repaint."""
+        w, h = self.width(), self.height()
+        if w <= 0 or h <= 0:
+            return
+
+        for node in self.nodes:
+            node['x'] += node['vx']
+            node['y'] += node['vy']
+
+            # Bounce off edges with slight randomization
+            if node['x'] < 0 or node['x'] > w:
+                node['vx'] *= -1
+                node['x'] = max(0, min(w, node['x']))
+            if node['y'] < 0 or node['y'] > h:
+                node['vy'] *= -1
+                node['y'] = max(0, min(h, node['y']))
+
+        self._build_spatial_grid()
+        self.update()
 
     def paintEvent(self, event):
         painter = QPainter(self)
         painter.setRenderHint(QPainter.Antialiasing)
 
-        # Draw background gradient
-        gradient = QLinearGradient(0, 0, 0, self.height())
-        gradient.setColorAt(0, QColor(10, 15, 30))
-        gradient.setColorAt(0.5, QColor(15, 30, 45))
-        gradient.setColorAt(1, QColor(10, 15, 30))
+        # Draw rich gradient background
+        gradient = QLinearGradient(0, 0, self.width(), self.height())
+        gradient.setColorAt(0, QColor(8, 12, 24))
+        gradient.setColorAt(0.3, QColor(12, 20, 40))
+        gradient.setColorAt(0.7, QColor(16, 28, 52))
+        gradient.setColorAt(1, QColor(10, 16, 32))
         painter.fillRect(self.rect(), gradient)
 
-        # Update and draw nodes
+        # Draw connections using spatial grid - O(n) instead of O(n²)
+        drawn_connections = set()
         for node in self.nodes:
-            node['x'] += node['vx']
-            node['y'] += node['vy']
+            nearby = self._get_nearby_nodes(node)
+            for other in nearby:
+                if other is node:
+                    continue
+                # Avoid drawing duplicate connections
+                pair = (id(node), id(other)) if id(node) < id(other) else (id(other), id(node))
+                if pair in drawn_connections:
+                    continue
 
-            # Bounce off edges
-            if node['x'] < 0 or node['x'] > self.width():
-                node['vx'] *= -1
-            if node['y'] < 0 or node['y'] > self.height():
-                node['vy'] *= -1
+                dx = node['x'] - other['x']
+                dy = node['y'] - other['y']
+                dist_sq = dx * dx + dy * dy
+                max_dist_sq = self.CONNECTION_DISTANCE ** 2
 
-            # Draw connections
-            for other in self.nodes:
-                dist = ((node['x'] - other['x']) ** 2 + (node['y'] - other['y']) ** 2) ** 0.5
-                if dist < 150:
-                    alpha = int(100 * (1 - dist / 150))
-                    pen = QPen(QColor(100, 150, 255, alpha))
+                if dist_sq < max_dist_sq:
+                    drawn_connections.add(pair)
+                    alpha = int(80 * (1 - dist_sq / max_dist_sq))
+                    pen = QPen(QColor(120, 180, 255, alpha))
                     pen.setWidth(1)
                     painter.setPen(pen)
                     painter.drawLine(int(node['x']), int(node['y']),
                                      int(other['x']), int(other['y']))
 
-            # Draw node
+        # Draw nodes with glow effect
+        for node in self.nodes:
+            size = node['size']
             painter.setPen(Qt.NoPen)
-            radial = QRadialGradient(node['x'], node['y'], 8)
-            radial.setColorAt(0, node['color'])
+
+            # Outer glow
+            radial = QRadialGradient(node['x'], node['y'], size * 2)
+            radial.setColorAt(0, QColor(node['color'].red(),
+                                        node['color'].green(),
+                                        node['color'].blue(), 100))
             radial.setColorAt(1, QColor(node['color'].red(),
                                         node['color'].green(),
                                         node['color'].blue(), 0))
             painter.setBrush(radial)
-            painter.drawEllipse(int(node['x'] - 8), int(node['y'] - 8), 16, 16)
+            painter.drawEllipse(int(node['x'] - size * 2), int(node['y'] - size * 2),
+                                size * 4, size * 4)
+
+            # Core node
+            radial = QRadialGradient(node['x'], node['y'], size)
+            radial.setColorAt(0, QColor(255, 255, 255, 200))
+            radial.setColorAt(0.3, node['color'])
+            radial.setColorAt(1, QColor(node['color'].red(),
+                                        node['color'].green(),
+                                        node['color'].blue(), 50))
+            painter.setBrush(radial)
+            painter.drawEllipse(int(node['x'] - size), int(node['y'] - size),
+                                size * 2, size * 2)
 
 
 class NetworkIcon(QWidget):
@@ -141,7 +217,7 @@ class LandingWindow(QMainWindow):
 
     def __init__(self) -> None:
         super().__init__()
-        self.setWindowTitle("🌐 SocialNet XML Data Editor")
+        self.setWindowTitle("🌐 SocialX XML Data Editor")
         self.setMinimumSize(1200, 700)
 
         # Create central widget
@@ -185,7 +261,7 @@ class LandingWindow(QMainWindow):
         card_layout.setContentsMargins(50, 50, 50, 50)
 
         # Title
-        title = QLabel("SocialNet XML Data Editor")
+        title = QLabel("SocialX XML Data Editor")
         title.setAlignment(Qt.AlignCenter)
         title.setStyleSheet("""
             QLabel {
@@ -208,7 +284,7 @@ class LandingWindow(QMainWindow):
         card_layout.addWidget(icon_container)
 
         # Question text
-        question = QLabel("<Welcome> select mode to provide the XML data </Welcome>")
+        question = QLabel("<Welcome> Select mode to provide the XML Data </Welcome>")
 
         question.setAlignment(Qt.AlignCenter)
         question.setStyleSheet("""
@@ -246,7 +322,7 @@ class LandingWindow(QMainWindow):
             border: 2px solid rgba(100, 120, 150, 255);
             color: white;
         }
-        
+
         #browse_btn:pressed {
             background: rgba(30, 40, 55, 180);
         }
@@ -273,7 +349,7 @@ class LandingWindow(QMainWindow):
                 border: 2px solid rgba(100, 120, 150, 255);
                 color: white;
             }
-            
+
             #manual_btn:pressed {
                 background: rgba(30, 40, 55, 180);
             }
@@ -283,7 +359,7 @@ class LandingWindow(QMainWindow):
         card_layout.addWidget(button_container)
 
         # Version label
-        version = QLabel("Version 1.X.X")
+        version = QLabel("Version 1.0.0")
         version.setAlignment(Qt.AlignCenter)
         version.setStyleSheet("""
             QLabel {
