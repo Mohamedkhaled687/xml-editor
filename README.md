@@ -124,6 +124,17 @@ flowchart TD
    ```
    You should see the main menu with options to launch GUI or CLI.
 
+### Build Windows .exe (PyInstaller)
+
+If you're on Windows and want a bundled executable:
+
+1. From the project root run:
+   ```bash
+   .\Builder.bat
+   ```
+2. The script will install build dependencies (`PySide6`, `networkx`, `matplotlib`, `numpy`, `colorama`, `pyinstaller`), clean previous `build/` and `dist/` outputs, and invoke PyInstaller.
+3. The generated executable will be at `dist\SocialX.exe` with the app icon from `assets\icon.ico`.
+
 ## Usage
 
 ### GUI Mode
