@@ -10,9 +10,15 @@
 
 A professional XML editor and visualizer for social network data with dual interface support (GUI and CLI). Parse, validate, format, compress, and analyze XML files with powerful graph visualization capabilities.
 
+## Screenshots
+
+### Main Entry Point
+![Entry Point](assets/images/EntryPoint.png)
+
 ## Table of Contents
 
 - [Features](#features)
+- [Screenshots](#screenshots)
 - [Architecture](#architecture)
 - [Installation](#installation)
 - [Usage](#usage)
@@ -146,6 +152,8 @@ python main.py
 # Select option 1
 ```
 
+![Landing Window](assets/images/Landing_Window.png)
+
 **Navigation:**
 - **Landing Window**: Choose between Browse Mode or Manual Mode
 - **Browse Mode**: Load XML files from disk and process them
@@ -170,6 +178,8 @@ Launch the command-line interface in REPL mode:
 python main.py
 # Select option 2
 ```
+
+![CLI Interface](assets/images/Cli.png)
 
 Or run CLI directly:
 
@@ -282,6 +292,8 @@ python cli.py verify -i assets/samples/Sample_with_errors.xml -o fixed.xml -f
 python cli.py format -i assets/samples/Non_formatted_sample.xml -o formatted.xml
 ```
 
+![Formatted XML](assets/images/Formatted.png)
+
 ### Example 3: Convert to JSON
 
 ```bash
@@ -306,6 +318,8 @@ python cli.py suggest -i assets/samples/Large_size_sample.xml -id 1
 # Visualize the network
 python cli.py draw -i assets/samples/Large_size_sample.xml -o network_graph.png
 ```
+
+![Graph Visualization](assets/images/buildGraph.jpeg)
 
 ### Example 5: Search Posts
 
