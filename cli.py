@@ -111,8 +111,8 @@ def execute_command(args, editor, graph):
             if ack[0]:
                 try:
                     editor.set_xml_string(file_io.read_file(args.input)[1])
-                    bool_mes, _, json_data = editor.export_to_json()
-                    if bool_mes:
+                    json_data = editor.export_to_json()
+                    if json_data is not None:
                         if args.output is not None:
                             with open(args.output, 'w', encoding='utf-8') as f:
                                 json.dump(json_data, f, indent=2, ensure_ascii=False)
