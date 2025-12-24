@@ -1,0 +1,186 @@
+@startuml
+' Project UML for xml-editor (updated layout)
+
+left to right direction
+skinparam packageStyle hexagon
+' Increase spacing between elements for readability
+skinparam nodesep 70
+skinparam ranksep 120
+skinparam packagePadding 20
+skinparam componentPadding 12
+
+package "UI" {
+  class BaseXMLWindow {
+    +__init__(window_title: str, mode_name: str)
+    +setup_ui()
+    +apply_stylesheet()
+    +save()
+    +validate_xml()
+    +correct_errors()
+    +format_xml()
+    +compress()
+    +decompress()
+    +minify()
+    +export_to_json()
+    +visualize_network()
+    +search()
+  }
+
+  class GraphVisualizationWindow {
+    +__init__(nodes, edges, main_window_size, parent=None)
+    +set_graph_data(nodes, edges, G=None, metrics=None)
+    +_build_local_graph()
+    +_calculate_local_metrics()
+    +_update_info_label()
+    +draw_graph()
+    +setup_ui()
+  }
+
+  class LandingWindow {
+    +__init__()
+    +browse_clicked (Signal)
+    +manual_clicked (Signal)
+  }
+
+  class AnimatedBackground
+  class NetworkIcon
+  class CodeViewerWindow
+  class BrowseWindow {
+    +__init__(main_window)
+    +_setup_input_section(parent_layout: QVBoxLayout)
+    +_get_panel_selector() : str
+    +_get_initialization_message() : str
+    +browse()
+    +upload()
+  }
+  class ManualWindow
+}
+
+package "Controllers" {
+  class XMLController {
+    +__init__(xml: str = None)
+    +set_xml_string(xml_string: str)
+    +get_xml_string() : str
+    +format() : str
+    +minify() : str
+    +validate() : (str, dict)
+    +autocorrect() : (str, dict)
+    +export_to_json() : dict
+    +compress_to_string(output_path: str = None) : str
+    +decompress_from_string(output_path: str = None, input_path: str = None, compressed_string: str = None) : str
+    +search_in_posts(word: str = None, topic: str = None)
+  }
+
+  class GraphController {
+    +__init__(xml_data = None)
+    +set_xml_data(xml_data)
+    +build_graph() : (bool, nodes, edges, error)
+    +get_graph() : networkx.DiGraph
+    +get_metrics() : dict
+    +get_most_influential_user()
+    +get_top_influencers(n: int = 5)
+    +get_most_active_user()
+    +get_top_active_users(n: int = 5)
+    +get_mutual_followers(user1_id: str, user2_id: str)
+    +suggest_users_to_follow(user_id: str, limit: int = 5)
+    +get_user_connections(user_id: str)
+    +get_engagement_score(user_id: str)
+  }
+}
+
+package "Utils" {
+  class DataParser {
+    +__init__(xml_data)
+    +parse_users() : dict
+    +parse_nodes() : dict
+    +parse_edges() : list
+    +get_graph_data() : (nodes, edges)
+    +get_user_stats(user_id: str)
+    +get_all_users_summary()
+    +validate_data() : (bool, list)
+    +clear_cache()
+  }
+
+  class NetworkAnalyzer {
+    +__init__(graph: nx.DiGraph, nodes_dict: dict)
+    +get_most_influential_user()
+    +get_top_influencers(n: int = 5)
+    +get_most_active_user()
+    +get_top_active_users(n: int = 5)
+    +get_mutual_followers(user1_id: str, user2_id: str)
+    +suggest_users_to_follow(user_id: str, limit: int = 5)
+    +get_user_connections(user_id: str)
+    +get_engagement_score(user_id: str)
+    +get_network_density()
+    +get_network_clustering_coefficient()
+    +get_average_path_length()
+  }
+
+  class XMLTree {
+    +fromstring(xml_string: str) : XMLNode
+    +parse(file_path: str) : XMLNode
+    --
+    -root: XMLNode
+  }
+
+  class XMLNode {
+    -tag: str
+    -attributes: dict[str,str]
+    -text: str
+    -children: list[XMLNode]
+    -parent: XMLNode
+    +add_child(child: XMLNode)
+    +get(attribute: str)
+    +find(tag: str) : XMLNode
+    +findall(path: str) : list
+  }
+
+  class ByteUtils
+  class file_io
+  class DataExtractor {
+    +extract_users(xml_data: XMLNode) : dict
+    +extract_edges(xml_data: XMLNode) : list
+    +extract_user_posts(user_elem: XMLNode) : list
+    +extract_user_followers(user_elem: XMLNode) : list
+    +extract_user_following(user_elem: XMLNode) : list
+    +extract_graph_data(xml_data: XMLNode) : (dict, list)
+    +extract_user_degree_info(user_elem: XMLNode, user_id: str) : dict
+  }
+}
+
+package "EntryPoints" {
+  class main
+  class cli
+}
+
+' Relationships (concrete)
+' Use orthogonal routing and explicit directions to reduce overlaps
+skinparam linetype ortho
+skinparam ArrowColor #333333
+
+XMLController ..> XMLTree : parses
+XMLController ..> ByteUtils : uses
+XMLController -right-> file_io : reads/writes
+
+GraphController -right-> DataParser : uses
+GraphController -right-> NetworkAnalyzer : delegates
+GraphController -right-> file_io : may read/write
+
+DataParser ..> XMLTree : uses
+DataExtractor ..> XMLTree : uses
+DataParser ..> XMLNode : uses
+DataExtractor ..> XMLNode : uses
+
+BaseXMLWindow -left-> XMLController : uses
+BaseXMLWindow -left-> GraphController : uses
+BaseXMLWindow -down-> CodeViewerWindow : opens
+BrowseWindow --|> BaseXMLWindow
+BrowseWindow -right-> file_io : uses
+
+GraphVisualizationWindow -left-> GraphController : uses
+LandingWindow -down-> AnimatedBackground : contains
+
+main -down-> BaseXMLWindow
+cli -down-> GraphController
+
+@enduml
