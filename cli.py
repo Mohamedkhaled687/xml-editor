@@ -240,11 +240,11 @@ def execute_command(args, editor, graph):
                     users = graph.suggest_users_to_follow(user_id=args.id.strip(), limit=5)
                     out = ""
                     for i in range(len(users)):
-                        out += f"{i + 1}.\n        name: {users[i]['name']} with an id of {users[i]['user_id']} \n"
+                        out += f"{i + 1}.     name: {users[i]['name']} with an id of {users[i]['user_id']} \n"
                     if out == "":
                         print(f"{Fore.YELLOW}we couldn't suggest any new friend{Style.RESET_ALL}")
                     else:
-                        print(f"{Fore.GREEN}we can suggest some new friends you might wanna check out:{Style.RESET_ALL}\n   {out}")
+                        print(f"{Fore.GREEN}we can suggest some new friends you might wanna check out:{Style.RESET_ALL}\n{out}")
                 except RuntimeError as e:
                     print(f"{Fore.RED}error while trying to build graph{Style.RESET_ALL}")
             else:
