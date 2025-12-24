@@ -1,0 +1,274 @@
+<mxfile host="app.diagrams.net" modified="2024-12-24T11:20:00.000Z" agent="Mozilla/5.0" version="22.1.0" type="device">
+  <diagram id="uml-class-diagram" name="SocialX UML Class Diagram">
+    <mxGraphModel dx="1434" dy="900" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="1400" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+        
+        <mxCell id="layer-entry" value="Entry Point Layer" style="text;html=1;strokeColor=none;fillColor=#dae8fc;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;fontSize=14;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="40" y="30" width="140" height="30" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="layer-views" value="View Layer" style="text;html=1;strokeColor=none;fillColor=#d5e8d4;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;fontSize=14;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="40" y="180" width="140" height="30" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="layer-controllers" value="Controller Layer" style="text;html=1;strokeColor=none;fillColor=#ffe6cc;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;fontSize=14;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="40" y="620" width="140" height="30" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="layer-utils" value="Utility Layer" style="text;html=1;strokeColor=none;fillColor=#f8cecc;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=1;fontSize=14;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="40" y="900" width="140" height="30" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="main-class" value="Main" style="swimlane;fontStyle=1;childLayout=stackLayout;horizontal=1;startSize=26;fillColor=#dae8fc;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=0;marginBottom=0;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="600" y="40" width="220" height="120" as="geometry"/>
+        </mxCell>
+        <mxCell id="main-sep" value="" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;" vertex="1" parent="main-class">
+          <mxGeometry y="26" width="220" height="8" as="geometry"/>
+        </mxCell>
+        <mxCell id="main-methods" value="+print_banner(): void&#xa;+launch_gui(): void&#xa;+launch_cli(): void&#xa;+print_help(): void&#xa;+app(): void" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontSize=11;" vertex="1" parent="main-class">
+          <mxGeometry y="34" width="220" height="86" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="appmanager-class" value="AppManager" style="swimlane;fontStyle=1;childLayout=stackLayout;horizontal=1;startSize=26;fillColor=#d5e8d4;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=0;marginBottom=0;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="200" y="220" width="220" height="150" as="geometry"/>
+        </mxCell>
+        <mxCell id="appmanager-attr" value="-app: QApplication&#xa;-landing_window: LandingWindow&#xa;-browse_window: BrowseWindow" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontSize=11;" vertex="1" parent="appmanager-class">
+          <mxGeometry y="26" width="220" height="50" as="geometry"/>
+        </mxCell>
+        <mxCell id="appmanager-sep" value="" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;" vertex="1" parent="appmanager-class">
+          <mxGeometry y="76" width="220" height="8" as="geometry"/>
+        </mxCell>
+        <mxCell id="appmanager-methods" value="+show_browse_mode(): void&#xa;+show_manual_mode(): void&#xa;+show_landing(): void&#xa;+run(): int" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontSize=11;" vertex="1" parent="appmanager-class">
+          <mxGeometry y="84" width="220" height="66" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="cli-class" value="CLI" style="swimlane;fontStyle=1;childLayout=stackLayout;horizontal=1;startSize=26;fillColor=#d5e8d4;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=0;marginBottom=0;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="920" y="220" width="220" height="130" as="geometry"/>
+        </mxCell>
+        <mxCell id="cli-sep" value="" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;" vertex="1" parent="cli-class">
+          <mxGeometry y="26" width="220" height="8" as="geometry"/>
+        </mxCell>
+        <mxCell id="cli-methods" value="+create_parser(): ArgumentParser&#xa;+execute_command(args, editor, graph)&#xa;+print_help_commands(): void&#xa;+get_prompt(): str&#xa;+run_repl(): void" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontSize=11;" vertex="1" parent="cli-class">
+          <mxGeometry y="34" width="220" height="96" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="landing-class" value="LandingWindow&#xa;QMainWindow" style="swimlane;fontStyle=1;childLayout=stackLayout;horizontal=1;startSize=40;fillColor=#d5e8d4;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=0;marginBottom=0;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="200" y="400" width="220" height="100" as="geometry"/>
+        </mxCell>
+        <mxCell id="landing-attr" value="+browse_clicked: Signal&#xa;+manual_clicked: Signal" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontSize=11;" vertex="1" parent="landing-class">
+          <mxGeometry y="40" width="220" height="36" as="geometry"/>
+        </mxCell>
+        <mxCell id="landing-sep" value="" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;" vertex="1" parent="landing-class">
+          <mxGeometry y="76" width="220" height="8" as="geometry"/>
+        </mxCell>
+        <mxCell id="landing-methods" value="+resizeEvent(event): void" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontSize=11;" vertex="1" parent="landing-class">
+          <mxGeometry y="84" width="220" height="16" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="basexml-class" value="BaseXMLWindow&#xa;abstract - QMainWindow" style="swimlane;fontStyle=3;childLayout=stackLayout;horizontal=1;startSize=40;fillColor=#d5e8d4;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=0;marginBottom=0;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="500" y="390" width="260" height="200" as="geometry"/>
+        </mxCell>
+        <mxCell id="basexml-attr" value="+back_clicked: Signal&#xa;#xml_controller: XMLController&#xa;#graph_controller: GraphController" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontSize=11;" vertex="1" parent="basexml-class">
+          <mxGeometry y="40" width="260" height="50" as="geometry"/>
+        </mxCell>
+        <mxCell id="basexml-sep" value="" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;" vertex="1" parent="basexml-class">
+          <mxGeometry y="90" width="260" height="8" as="geometry"/>
+        </mxCell>
+        <mxCell id="basexml-methods" value="+setup_ui(): void&#xa;+validate_xml(): void&#xa;+correct_errors(): void&#xa;+format_xml(): void&#xa;+compress(): void&#xa;+minify(): void&#xa;+export_to_json(): void&#xa;+visualize_network(): void" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontSize=11;" vertex="1" parent="basexml-class">
+          <mxGeometry y="98" width="260" height="102" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="browse-class" value="BrowseWindow" style="swimlane;fontStyle=1;childLayout=stackLayout;horizontal=1;startSize=26;fillColor=#d5e8d4;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=0;marginBottom=0;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="820" y="420" width="170" height="100" as="geometry"/>
+        </mxCell>
+        <mxCell id="browse-attr" value="-file_path_box: QLineEdit&#xa;-main_window: AppManager" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontSize=11;" vertex="1" parent="browse-class">
+          <mxGeometry y="26" width="170" height="36" as="geometry"/>
+        </mxCell>
+        <mxCell id="browse-sep" value="" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;" vertex="1" parent="browse-class">
+          <mxGeometry y="62" width="170" height="8" as="geometry"/>
+        </mxCell>
+        <mxCell id="browse-methods" value="+browse(): void&#xa;+upload(): void" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontSize=11;" vertex="1" parent="browse-class">
+          <mxGeometry y="70" width="170" height="30" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="manual-class" value="ManualWindow" style="swimlane;fontStyle=1;childLayout=stackLayout;horizontal=1;startSize=26;fillColor=#d5e8d4;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=0;marginBottom=0;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="1030" y="420" width="170" height="100" as="geometry"/>
+        </mxCell>
+        <mxCell id="manual-attr" value="-input_text_box: QTextEdit&#xa;-main_window: AppManager" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontSize=11;" vertex="1" parent="manual-class">
+          <mxGeometry y="26" width="170" height="36" as="geometry"/>
+        </mxCell>
+        <mxCell id="manual-sep" value="" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;" vertex="1" parent="manual-class">
+          <mxGeometry y="62" width="170" height="8" as="geometry"/>
+        </mxCell>
+        <mxCell id="manual-methods" value="+upload(): void" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontSize=11;" vertex="1" parent="manual-class">
+          <mxGeometry y="70" width="170" height="30" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="xmlctrl-class" value="XMLController" style="swimlane;fontStyle=1;childLayout=stackLayout;horizontal=1;startSize=26;fillColor=#ffe6cc;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=0;marginBottom=0;strokeColor=#d79b00;" vertex="1" parent="1">
+          <mxGeometry x="200" y="680" width="280" height="180" as="geometry"/>
+        </mxCell>
+        <mxCell id="xmlctrl-attr" value="-xml_string: str&#xa;-xml_data: XMLNode" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontSize=11;" vertex="1" parent="xmlctrl-class">
+          <mxGeometry y="26" width="280" height="36" as="geometry"/>
+        </mxCell>
+        <mxCell id="xmlctrl-sep" value="" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;" vertex="1" parent="xmlctrl-class">
+          <mxGeometry y="62" width="280" height="8" as="geometry"/>
+        </mxCell>
+        <mxCell id="xmlctrl-methods" value="+set_xml_string(xml_string): void&#xa;+get_xml_string(): str&#xa;+format(): str&#xa;+minify(): str&#xa;+validate(): Tuple&#xa;+autocorrect(): Tuple&#xa;+export_to_json(): Dict&#xa;+compress_to_string(): str&#xa;+decompress_from_string(): str" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontSize=11;" vertex="1" parent="xmlctrl-class">
+          <mxGeometry y="70" width="280" height="110" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="graphctrl-class" value="GraphController" style="swimlane;fontStyle=1;childLayout=stackLayout;horizontal=1;startSize=26;fillColor=#ffe6cc;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=0;marginBottom=0;strokeColor=#d79b00;" vertex="1" parent="1">
+          <mxGeometry x="820" y="680" width="260" height="180" as="geometry"/>
+        </mxCell>
+        <mxCell id="graphctrl-attr" value="-xml_data: str&#xa;-G: DiGraph&#xa;-analyzer: NetworkAnalyzer" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontSize=11;" vertex="1" parent="graphctrl-class">
+          <mxGeometry y="26" width="260" height="50" as="geometry"/>
+        </mxCell>
+        <mxCell id="graphctrl-sep" value="" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;" vertex="1" parent="graphctrl-class">
+          <mxGeometry y="76" width="260" height="8" as="geometry"/>
+        </mxCell>
+        <mxCell id="graphctrl-methods" value="+build_graph(): Tuple&#xa;+get_graph(): DiGraph&#xa;+get_metrics(): Dict&#xa;+get_most_influential_user(): Dict&#xa;+suggest_users_to_follow(): List&#xa;+get_mutual_followers(): List" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontSize=11;" vertex="1" parent="graphctrl-class">
+          <mxGeometry y="84" width="260" height="96" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="fileio-class" value="file_io&#xa;module" style="swimlane;fontStyle=1;childLayout=stackLayout;horizontal=1;startSize=40;fillColor=#f8cecc;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=0;marginBottom=0;strokeColor=#b85450;" vertex="1" parent="1">
+          <mxGeometry x="40" y="950" width="180" height="120" as="geometry"/>
+        </mxCell>
+        <mxCell id="fileio-sep" value="" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;" vertex="1" parent="fileio-class">
+          <mxGeometry y="40" width="180" height="8" as="geometry"/>
+        </mxCell>
+        <mxCell id="fileio-methods" value="+read_file(path): Tuple&#xa;+write_file(path, data): Tuple&#xa;+read_binary(path): Tuple&#xa;+write_binary(path, data)&#xa;+pretty_format(xml): str" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontSize=11;" vertex="1" parent="fileio-class">
+          <mxGeometry y="48" width="180" height="72" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="xmltree-class" value="XMLTree" style="swimlane;fontStyle=1;childLayout=stackLayout;horizontal=1;startSize=26;fillColor=#f8cecc;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=0;marginBottom=0;strokeColor=#b85450;" vertex="1" parent="1">
+          <mxGeometry x="240" y="950" width="160" height="100" as="geometry"/>
+        </mxCell>
+        <mxCell id="xmltree-attr" value="-root: XMLNode" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontSize=11;" vertex="1" parent="xmltree-class">
+          <mxGeometry y="26" width="160" height="20" as="geometry"/>
+        </mxCell>
+        <mxCell id="xmltree-sep" value="" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;" vertex="1" parent="xmltree-class">
+          <mxGeometry y="46" width="160" height="8" as="geometry"/>
+        </mxCell>
+        <mxCell id="xmltree-methods" value="+fromstring(xml): XMLNode&#xa;+parse(path): XMLNode&#xa;+get_root(): XMLNode" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontSize=11;" vertex="1" parent="xmltree-class">
+          <mxGeometry y="54" width="160" height="46" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="xmlnode-class" value="XMLNode" style="swimlane;fontStyle=1;childLayout=stackLayout;horizontal=1;startSize=26;fillColor=#f8cecc;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=0;marginBottom=0;strokeColor=#b85450;" vertex="1" parent="1">
+          <mxGeometry x="240" y="1070" width="160" height="110" as="geometry"/>
+        </mxCell>
+        <mxCell id="xmlnode-attr" value="+tag: str&#xa;+attributes: Dict&#xa;+children: List" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontSize=11;" vertex="1" parent="xmlnode-class">
+          <mxGeometry y="26" width="160" height="45" as="geometry"/>
+        </mxCell>
+        <mxCell id="xmlnode-sep" value="" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;" vertex="1" parent="xmlnode-class">
+          <mxGeometry y="71" width="160" height="8" as="geometry"/>
+        </mxCell>
+        <mxCell id="xmlnode-methods" value="+find(tag): XMLNode&#xa;+findall(path): List" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontSize=11;" vertex="1" parent="xmlnode-class">
+          <mxGeometry y="79" width="160" height="31" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="dataparser-class" value="DataParser" style="swimlane;fontStyle=1;childLayout=stackLayout;horizontal=1;startSize=26;fillColor=#f8cecc;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=0;marginBottom=0;strokeColor=#b85450;" vertex="1" parent="1">
+          <mxGeometry x="420" y="950" width="180" height="120" as="geometry"/>
+        </mxCell>
+        <mxCell id="dataparser-attr" value="-root: XMLNode&#xa;-_users_cache: Dict" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontSize=11;" vertex="1" parent="dataparser-class">
+          <mxGeometry y="26" width="180" height="36" as="geometry"/>
+        </mxCell>
+        <mxCell id="dataparser-sep" value="" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;" vertex="1" parent="dataparser-class">
+          <mxGeometry y="62" width="180" height="8" as="geometry"/>
+        </mxCell>
+        <mxCell id="dataparser-methods" value="+parse_users(): Dict&#xa;+parse_nodes(): Dict&#xa;+parse_edges(): List&#xa;+get_graph_data(): Tuple" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontSize=11;" vertex="1" parent="dataparser-class">
+          <mxGeometry y="70" width="180" height="50" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="networkanalyzer-class" value="NetworkAnalyzer" style="swimlane;fontStyle=1;childLayout=stackLayout;horizontal=1;startSize=26;fillColor=#f8cecc;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=0;marginBottom=0;strokeColor=#b85450;" vertex="1" parent="1">
+          <mxGeometry x="620" y="950" width="200" height="140" as="geometry"/>
+        </mxCell>
+        <mxCell id="networkanalyzer-attr" value="-graph: DiGraph&#xa;-nodes_dict: Dict" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontSize=11;" vertex="1" parent="networkanalyzer-class">
+          <mxGeometry y="26" width="200" height="36" as="geometry"/>
+        </mxCell>
+        <mxCell id="networkanalyzer-sep" value="" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;" vertex="1" parent="networkanalyzer-class">
+          <mxGeometry y="62" width="200" height="8" as="geometry"/>
+        </mxCell>
+        <mxCell id="networkanalyzer-methods" value="+get_most_influential_user()&#xa;+get_top_influencers(n)&#xa;+get_mutual_followers(u1, u2)&#xa;+suggest_users_to_follow()&#xa;+get_engagement_score()" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontSize=11;" vertex="1" parent="networkanalyzer-class">
+          <mxGeometry y="70" width="200" height="70" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="byteutils-class" value="ByteUtils&#xa;static" style="swimlane;fontStyle=1;childLayout=stackLayout;horizontal=1;startSize=40;fillColor=#f8cecc;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=0;marginBottom=0;strokeColor=#b85450;" vertex="1" parent="1">
+          <mxGeometry x="840" y="950" width="160" height="100" as="geometry"/>
+        </mxCell>
+        <mxCell id="byteutils-sep" value="" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;" vertex="1" parent="byteutils-class">
+          <mxGeometry y="40" width="160" height="8" as="geometry"/>
+        </mxCell>
+        <mxCell id="byteutils-methods" value="+pack_u16(n): bytes&#xa;+pack_u32(n): bytes&#xa;+unpack_u16(data): int&#xa;+unpack_u32(data): int" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontSize=11;" vertex="1" parent="byteutils-class">
+          <mxGeometry y="48" width="160" height="52" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="rel-main-app" value="launches" style="endArrow=open;endSize=12;dashed=1;html=1;rounded=0;" edge="1" parent="1" source="main-class" target="appmanager-class">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="rel-main-cli" value="launches" style="endArrow=open;endSize=12;dashed=1;html=1;rounded=0;" edge="1" parent="1" source="main-class" target="cli-class">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="rel-app-landing" value="" style="endArrow=none;html=1;startArrow=diamondThin;startFill=1;startSize=14;rounded=0;" edge="1" parent="1" source="appmanager-class" target="landing-class">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="rel-base-browse" value="" style="endArrow=block;endSize=16;endFill=0;html=1;rounded=0;" edge="1" parent="1" source="browse-class" target="basexml-class">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="rel-base-manual" value="" style="endArrow=block;endSize=16;endFill=0;html=1;rounded=0;" edge="1" parent="1" source="manual-class" target="basexml-class">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="rel-cli-xmlctrl" value="uses" style="endArrow=open;endSize=12;dashed=1;html=1;rounded=0;" edge="1" parent="1" source="cli-class" target="xmlctrl-class">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="rel-cli-graphctrl" value="uses" style="endArrow=open;endSize=12;dashed=1;html=1;rounded=0;" edge="1" parent="1" source="cli-class" target="graphctrl-class">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="rel-basexml-xmlctrl" value="uses" style="endArrow=open;endSize=12;dashed=1;html=1;rounded=0;" edge="1" parent="1" source="basexml-class" target="xmlctrl-class">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="rel-basexml-graphctrl" value="uses" style="endArrow=open;endSize=12;dashed=1;html=1;rounded=0;" edge="1" parent="1" source="basexml-class" target="graphctrl-class">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="rel-xmlctrl-fileio" value="" style="endArrow=open;endSize=12;dashed=1;html=1;rounded=0;" edge="1" parent="1" source="xmlctrl-class" target="fileio-class">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="rel-xmlctrl-xmltree" value="" style="endArrow=open;endSize=12;dashed=1;html=1;rounded=0;" edge="1" parent="1" source="xmlctrl-class" target="xmltree-class">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="rel-xmlctrl-byteutils" value="" style="endArrow=open;endSize=12;dashed=1;html=1;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;" edge="1" parent="1" source="xmlctrl-class" target="byteutils-class">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="rel-graphctrl-dataparser" value="" style="endArrow=open;endSize=12;dashed=1;html=1;rounded=0;" edge="1" parent="1" source="graphctrl-class" target="dataparser-class">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="rel-graphctrl-networkanalyzer" value="" style="endArrow=open;endSize=12;dashed=1;html=1;rounded=0;" edge="1" parent="1" source="graphctrl-class" target="networkanalyzer-class">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="rel-xmltree-xmlnode" value="" style="endArrow=open;endSize=12;dashed=1;html=1;rounded=0;" edge="1" parent="1" source="xmltree-class" target="xmlnode-class">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        
+        <mxCell id="rel-dataparser-xmltree" value="" style="endArrow=open;endSize=12;dashed=1;html=1;rounded=0;" edge="1" parent="1" source="dataparser-class" target="xmltree-class">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
